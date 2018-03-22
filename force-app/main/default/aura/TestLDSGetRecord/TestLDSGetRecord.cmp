@@ -1,0 +1,45 @@
+<aura:component >
+    
+    <aura:attribute name="contactRecord" type="Contact" />
+    <aura:attribute name="recordId" type="id" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <force:recordData aura:id="loadrecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.contactRecord}"
+                      fields="Id, FirstName, LastName" 
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="standard:contact" title="Get Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Get Contact" onclick="{!c.getRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="recordId" label="Enter Record Id"
+                                     value="{!v.recordId}" required="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.contactRecord.FirstName}" readonly="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.contactRecord.LastName}" readonly="true"/>                    
+                </lightning:layoutItem>                
+            </lightning:layout>
+        </div>
+        
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div>
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>
+        
+    </lightning:card>
+    
+</aura:component>

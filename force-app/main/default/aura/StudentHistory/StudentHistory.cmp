@@ -1,0 +1,24 @@
+<aura:component >
+    
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="public" />
+    <!--<aura:attribute name="history" type="Object[]" access="public" />-->
+    
+    <aura:iteration items="{!v.history}" var="historyItem">
+        <lightning:tile label="{!historyItem.Course_Delivery__r.Start_Date__c + ' - ' + historyItem.Course_Delivery__r.Course__r.Name}" 
+                        class="slds-tile_board">
+            <aura:set attribute="media">
+                <lightning:icon iconName="standard:record"/>
+            </aura:set>
+            <lightning:formattedRichText value="{!historyItem.InstructorNotes__c}" />
+        </lightning:tile>
+        <!--
+        <lightning:tile label="{!historyItem.startDate + ' - ' + historyItem.courseName}" class="slds-tile_board">
+            <aura:set attribute="media">
+                <lightning:icon iconName="standard:record" />
+            </aura:set>
+            <lightning:formattedRichText value="{!historyItem.instructorNotes}" />
+        </lightning:tile>
+        -->
+    </aura:iteration>
+    
+</aura:component>

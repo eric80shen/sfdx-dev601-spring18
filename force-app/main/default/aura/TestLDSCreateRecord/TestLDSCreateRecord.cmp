@@ -1,0 +1,49 @@
+<aura:component >
+    
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="newContact" type="Contact" />
+    <aura:attribute name="simpleNewContact" type="Contact" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="contactRecordCreator"
+                      layoutType="FULL"
+                      targetRecord="{!v.newContact}"
+                      targetFields="{!v.simpleNewContact}"
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="action:add_contact" title="Add Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Add Contact" onclick="{!c.addRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.simpleNewContact.FirstName}" required="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.simpleNewContact.LastName}" required="true"/>                    
+                </lightning:layoutItem>
+                <aura:if isTrue="{!not(empty(v.recordId))}">
+                    <lightning:layoutItem class="slds-m-bottom_small">     
+                        <lightning:input name="recordId" label="RecordId" 
+                                         value="{!v.recordId}" readonly="true"/>                  
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+        </div>
+        
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div class="recordError">
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>
+    </lightning:card>
+    
+</aura:component>

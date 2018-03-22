@@ -1,0 +1,48 @@
+<aura:component extends="c:Base">
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="public"/>
+    <!--<aura:attribute name="history" access="public" type="Object[]" /> -->    
+	<aura:attribute name="courseAttendeeId" type="Id" access="private"/>
+    <aura:attribute name="courseAttendeeRecord" type="Course_Attendee__c" access="private"/>
+    <aura:attribute name="recordSaveError" type="String" access="private"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.history}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="recordEditor"
+                      recordId="{!v.courseAttendeeId}"
+                      targetFields="{!v.courseAttendeeRecord}"
+                      targetError="{!v.recordSaveError}"
+                      fields="Id,InstructorNotes__c" 
+                      mode="EDIT"/>
+    
+    <lightning:layout class="slds-grid_vertical">
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:select name="classSelector" 
+                              label="Select a class:" 
+                              value="{!v.courseAttendeeId}" 
+                              onchange="{!c.onCourseAttendeeChange}">
+                <aura:iteration items="{!v.history}" var="historyItem">
+                    <option value="{!historyItem.Id}">
+                        {!historyItem.Course_Delivery__r.Start_Date__c + ' - ' + historyItem.Course_Delivery__r.Course__r.Name}
+                    </option>
+                    <!--
+                    <option value="{!historyItem.courseAttendeeId}">
+                        {!historyItem.startDate + '-' + historyItem.courseName}
+                    </option>
+                    -->                    
+                </aura:iteration>
+            </lightning:select>            
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:inputRichText value="{!v.courseAttendeeRecord.InstructorNotes__c}" />
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small" class="slds-text-align_center">
+            <lightning:button label="Save" variant="brand" onclick="{!c.saveRecord}" />
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+</aura:component>

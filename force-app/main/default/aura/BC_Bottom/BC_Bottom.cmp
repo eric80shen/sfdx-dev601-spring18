@@ -1,0 +1,10 @@
+<aura:component >
+    
+    <aura:registerEvent name="BC_EVName" type="c:BC_Event" />
+    
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    
+    <lightning:button label="Click and look at console log" onclick="{!c.onClick}" />
+    
+</aura:component>

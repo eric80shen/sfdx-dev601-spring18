@@ -1,0 +1,11 @@
+<aura:component extensible="true">
+    
+    <aura:attribute name="message" type="String" default="Default Message" />
+    
+    <p>{!v.message}</p>
+    
+    <div style="border:1px solid black">
+        {!v.body}   
+    </div>
+
+</aura:component>

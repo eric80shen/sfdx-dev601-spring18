@@ -1,0 +1,11 @@
+<aura:component >
+    <!--
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    -->
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" includeFacets="true"/>
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" includeFacets="true"/>
+
+    {!v.body}
+    
+</aura:component>

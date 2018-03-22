@@ -1,0 +1,19 @@
+<aura:component >
+    <aura:attribute name="title" type="String" default="Component Event Example" />
+    <aura:attribute name="parentMessage" type="String" default="Hello from parent"/>
+    
+    <aura:handler name="grandChildClicked" event="c:TestCmpEvent" action="{!c.handleEvent}" phase="bubble"/>
+    <aura:handler event="c:TestAppEvent" action="{!c.handleEvent}" />
+
+    <strong>{!v.title}</strong>
+    <div class="slds-box slds-theme_inverse">
+        <strong>Parent Component</strong>
+        
+        <br/><p>Value of parentMessage is <b>{!v.parentMessage}</b></p>
+
+        <br/><p><ui:button label="Click me to call child method" aura:id="MyButton" press="{!c.onButtonPress}"/></p>
+        
+        <br/><c:TestChild aura:id="testChild" />
+    </div>
+    
+</aura:component>

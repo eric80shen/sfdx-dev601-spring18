@@ -1,0 +1,17 @@
+<aura:component >
+    <aura:attribute name="grandChildMessage" type="String" default="Hello from Grand Child Component"/>
+    <aura:attribute name="stopPropagation" type="Boolean" default="false" />
+    
+    <aura:registerEvent name="grandChildClicked" type="c:TestCmpEvent" />
+    <aura:registerEvent name="appEvent" type="c:TestAppEvent" />
+    
+    <div class="slds-box slds-theme_warning">
+        <strong>Grand Child Component</strong>
+        <ui:inputText label="Enter some text to send to parents: " value="{!v.grandChildMessage}" size="40"/>
+        
+        <ui:inputCheckBox label="Click to stop event propagation beyond initial parent" value="{!v.stopPropagation}" />
+        
+        <br/><ui:button label="COMPONENT Event - Click Me!" aura:id="MyButton1" press="{!c.fireComponentEvent}"/>
+        <br/><ui:button label="APPLICATION Event - Click Me!" aura:id="MyButton2" press="{!c.fireApplicationEvent}"/>
+    </div>   
+</aura:component>

@@ -1,0 +1,28 @@
+<aura:component description="Display photo and name of student as clickable button" >
+    
+    <aura:attribute name="student" type="Contact" access="public" 
+                    default="{'sobjectType' : 'Contact', 
+                              'Name' : 'Joe Flowers',
+                               PhotoUrl : '/services/images/photo/003B0000009VnYcIAK'}"
+                    description="Contact object with fields sobjectType, Id, Name, PhotoUrl" />
+    <aura:attribute name="selected" 
+                    type="boolean" 
+                    access="public" 
+                    default="false" 
+                    description="Set to true to persist blue border" />
+    
+    <aura:registerEvent name="onStudentSelected" type="c:StudentSelected" />
+    
+    <lightning:button onclick="{!c.onStudentClick}" 
+                      variant="neutral" 
+                      class="{! v.selected ? 'tile selected' : 'tile' }">
+        
+        <div class="innertile" style="{# 'background-image:url(' + v.student.PhotoUrl + ')' }" >
+            <div class="lower-third">
+                <h1 class="truncate">{!v.student.Name}</h1>
+            </div>
+        </div>
+        
+    </lightning:button>
+	
+</aura:component>

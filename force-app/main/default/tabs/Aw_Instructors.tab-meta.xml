@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <auraComponent>AwInstructors</auraComponent>
+    <icon>SharedDocuments/AwInstructorsTabIcon.png</icon>
+    <label>Aw Instructors</label>
+    <mobileReady>false</mobileReady>
+    <motif>Custom120: TV Widescreen</motif>
+</CustomTab>

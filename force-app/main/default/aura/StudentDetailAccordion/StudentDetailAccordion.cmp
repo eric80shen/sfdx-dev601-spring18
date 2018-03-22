@@ -1,0 +1,44 @@
+<aura:component extends="c:Base" controller="StudentDetailAccordion">
+    
+    <aura:attribute name="contactId" type="Id" access="public"/>
+    <!--<aura:attribute name="courses" type="Object[]" access="public"/>-->
+    <aura:attribute name="courses" type="Course_Attendee__c[]" access="public"/>
+    <aura:attribute name="certs" type="Object[]" access="private"/>
+    
+    <aura:handler name="change" value="{!v.contactId}" action="{!c.onContactIdChange}"/>
+
+    <lightning:accordion >
+        
+        <lightning:accordionSection label="Courses" name="courses">
+             <aura:iteration items="{!v.courses}" var="thisCourse">
+                 <!-- Commented out because courses is of type Course_Attendee__c[] in my solution
+                 <lightning:tile label="{!thisCourse.startDate + ' - ' + 
+                                        thisCourse.courseName}"
+                                 class="slds-tile_board">
+				 -->      
+                 <lightning:tile label="{!thisCourse.Course_Delivery__r.Start_Date__c + ' - ' + 
+                                        thisCourse.Course_Delivery__r.Course__r.Name}"
+                                 class="slds-tile_board">
+                     <aura:set attribute="media">
+                         <lightning:icon iconName="standard:event"/>
+                     </aura:set>
+                     <!--{!thisCourse.status}-->
+                     {!thisCourse.Status__c}
+                 </lightning:tile>
+            </aura:iteration>
+        </lightning:accordionSection>
+        
+        <lightning:accordionSection label="Certifications" name="certifications">
+            <aura:iteration items="{!v.certs}" var="thisCert">
+                <lightning:tile label="{!thisCert.Date_Achieved__c + ' - ' + thisCert.Certification__r.Name}" 
+                                class="slds-tile_board">
+                    <aura:set attribute="media">
+                        <lightning:icon iconName="standard:event"/>
+                    </aura:set>
+                </lightning:tile>
+            </aura:iteration>
+        </lightning:accordionSection>
+
+    </lightning:accordion>
+
+</aura:component>

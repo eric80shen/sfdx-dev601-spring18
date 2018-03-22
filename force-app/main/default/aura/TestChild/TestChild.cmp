@@ -1,0 +1,17 @@
+<aura:component >
+    <aura:attribute name="childMessage" type="String" />
+    <aura:attribute name="parentMessage" type="String" />
+    
+    <aura:handler name="grandChildClicked" event="c:TestCmpEvent" action="{!c.handleEvent}" phase="bubble"/>
+
+    <aura:method name="sampleMethod" action="{!c.doAction}" access="PUBLIC" description="Sample method with parameters"> 
+        <aura:attribute name="param1" type="String" default="parameter 1" /> 
+    </aura:method>
+
+    <div class="slds-box slds-theme_info">
+        <strong>Child Component</strong>
+        <br/><p>Value of childMessage is <b>{!v.childMessage}</b></p>
+        <p>Value of parentMessage is <b>{!v.parentMessage}</b></p>
+        <br/><c:TestGrandChild />
+    </div>   
+</aura:component>

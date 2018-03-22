@@ -1,0 +1,6 @@
+<aura:event type="COMPONENT" description="" >
+    
+    <aura:attribute name="type" type="String"/>
+    <aura:attribute name="config" type="Object"/>
+    
+</aura:event>

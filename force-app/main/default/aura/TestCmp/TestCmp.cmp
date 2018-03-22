@@ -1,0 +1,33 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <lightning:layout horizontalAlign="spread" verticalAlign="stretch" multipleRows="true">
+        
+        <lightning:layoutItem size="12" class="slds-box">
+            Header
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="8">
+            <lightning:layoutItem size="12" class="slds-box">
+                Content A
+            </lightning:layoutItem>
+            <lightning:layout horizontalAlign="spread" verticalAlign="stretch">
+                <lightning:layoutItem size="6" class="slds-box">
+                    Content B 
+                </lightning:layoutItem>
+                <lightning:layoutItem size="6" class="slds-box">
+                    Content C<br/>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem size="4" class="slds-box">
+            Aside<br/>
+            Line 1<br/>
+            Line 1<br/>
+            Line 1<br/>
+            Line 1<br/>
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+</aura:component>

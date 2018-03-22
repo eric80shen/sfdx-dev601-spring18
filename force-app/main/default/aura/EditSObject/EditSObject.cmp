@@ -1,0 +1,13 @@
+<aura:component >
+    
+    <aura:attribute type="Id" name="Id" required="true" />
+    
+    <!-- Added to get the Save to work -->
+    <aura:method name="saveRecord" action="{!c.doSave}" /> 
+    
+    <!-- Added to get the Save to work -->
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <force:recordEdit aura:id="edit" recordId="{!v.Id}"/>
+    
+</aura:component>
