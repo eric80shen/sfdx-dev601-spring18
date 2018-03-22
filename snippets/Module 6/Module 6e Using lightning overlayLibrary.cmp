@@ -1,0 +1,86 @@
+<!-- Must run from LEX -->
+
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:overlayLibrary aura:id="overlayLib" />
+    
+    <lightning:button name="modal" label="Show Modal" onclick="{!c.handleShowModal}" />
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({    
+    handleShowModal: function(component, evt, helper) {
+        var modalBody; 
+        var modalFooter;
+        $A.createComponents(
+            [
+                ["c:TestModalBody", {Id: '0011I00000AgYlkQAF'}], // Replace with real ID
+                ["c:TestModalFooter", {}]
+            ],
+            function(components, status) {
+                if (status === "SUCCESS") {
+                    modalBody = components[0];
+                    modalFooter = components[1];
+                    modalFooter.set('v.modalBody', modalBody);
+                    component.find('overlayLib').showCustomModal({
+                        header: "Application Confirmation",
+                        body: modalBody, 
+                        footer: modalFooter,
+                        showCloseButton: true,
+                        cssClass: "",
+                        closeCallback: function() {
+                            alert('You closed the alert!');
+                        }
+                    });
+                }
+            });
+    }
+})
+
+<!-- TestModalBody.cmp -->
+<aura:component >
+    
+    <aura:attribute type="Id" name="Id" required="true" />
+    
+    <aura:method name="saveRecord" action="{!c.doSave}" /> 
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <force:recordEdit aura:id="edit" recordId="{!v.Id}"/>
+    
+</aura:component>
+
+<!-- TestModalBodyController.js -->
+({
+    doSave : function(component, event, helper) {
+        component.find("edit").get("e.recordSave").fire();
+        component.find("overlayLib").notifyClose();
+    }
+})
+
+<!-- TestModalFooter.cmp -->
+<aura:component >
+    
+    <aura:attribute name="modalBody" type="Aura.Component" />
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <lightning:button name="cancel" label="Cancel" onclick="{!c.handleCancel}"/>
+    <lightning:button name="ok" label="OK" variant="brand" onclick="{!c.handleOK}"/>    
+    
+</aura:component>
+
+<!-- TestModalFooterController.js -->
+({
+    handleCancel : function(component, event, helper) {
+        // closes the modal or popover from the component
+        component.find("overlayLib").notifyClose();
+    },
+    
+    handleOK : function(component, event, helper) {
+        var modalBodyCmp = component.get("v.modalBody");
+        modalBodyCmp.saveRecord();
+    }
+})

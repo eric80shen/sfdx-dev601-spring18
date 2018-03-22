@@ -1,0 +1,308 @@
+<!--
+
+Add a button group to the CertificationStudentList card.
+
+Tasks:
+1. Add Buttons to the Certification List
+2. Enable/Disable Buttons Based on Grid Row Selection
+3. Define the Apex Method Delete Certifications
+4. Handle the Delete Button Action
+
+-->
+
+<!-- CertificationStudentList.cmp -->
+<aura:component extends="c:Base" controller="CertificationStudentList">
+    
+    <aura:attribute name="contacts" type="Object[]" access="private" />
+    <aura:attribute name="columns" type="Object[]" access="private" />
+    <aura:attribute name="certificationId" type="Id" access="public" />
+    <aura:attribute name="label" type="String" access="public" default="" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.certificationId}" action="{!c.onCertificationIdChange}"/>
+    
+    <lightning:card title="{!v.label + ' Certifications'}">
+        
+        <aura:set attribute="actions">
+            <lightning:buttongroup >
+                <lightning:button label="E-Mail" onclick="{!c.onCertActions}" 
+                                  aura:Id="btnEmail" disabled="true"/>
+                
+                <lightning:button label="Send Cert." onclick="{!c.onCertActions}" 
+                                  aura:Id="btnSendCert" disabled="true"/>
+                
+                <lightning:button label="Delete" onclick="{!c.onCertActions}" 
+                                  variant="destructive" aura:Id="btnDelete" disabled="true"/>
+            </lightning:buttongroup>
+        </aura:set>
+
+        <lightning:datatable data="{!v.contacts}"
+                             columns="{!v.columns}"
+                             keyField="certificationHeldId" 
+                             aura:Id="datatable"
+                             onrowselection="{!c.onRowSelection}" />
+    </lightning:card>
+
+</aura:component>
+
+<!-- CertificationStudentListController.js -->
+({
+    doInit : function(component, event, helper) {
+        component.set('v.columns', [    
+            {label: 'Name', fieldName: 'name', type: 'text'},
+            {label: 'Date', fieldName: 'date', type: 'text'},
+            {label: 'Email',fieldName: 'email', type: 'email'},
+            {label: 'Contact Phone', fieldName: 'phone', type: 'phone'}        
+        ]);
+    },
+    
+    onCertificationIdChange : function(component, event, helper) {
+        helper.refreshData(component);
+    },
+    
+    onRowSelection : function(component,event,helper) {
+        helper.enableActionButtons(
+            component,
+            event.getParam('selectedRows').length > 0
+        );
+    },
+    
+    onCertActions : function(component,event,helper) {
+        var action = event.getSource().getLocalId();
+        var selections = component.find('datatable').getSelectedRows();
+        var selectedIds = [];
+        for (var i = 0; i < selections.length; i++) {
+            selectedIds.push(selections[i].certificationHeldId);
+        }
+        
+        switch(action) {
+            case 'btnEmail' : 
+                break;
+            case 'btnSendCert' :
+                break;
+            case 'btnDelete' :
+                helper.onDelete(component, selectedIds);
+                break;
+        }
+    }
+})
+
+<!-- CertificationStudentListHelper.js -->
+({
+    enableActionButtons : function(component, mode) {
+        mode = !mode;
+        component.find('btnEmail').set('v.disabled', mode);
+        component.find('btnSendCert').set('v.disabled', mode);
+        component.find('btnDelete').set('v.disabled', mode);
+    },
+    
+    onDelete : function(component, selectedIds) {
+        this.callServer(
+            component,
+            "c.deleteStudentCertification",
+            function(response) {  
+                this.refreshData(component);
+            },
+            {
+                certificationIds : selectedIds
+            }
+        );
+    },
+    
+    refreshData : function(component) {
+        this.callServer(
+            component,
+            "c.getCertifiedStudents",
+            function(response) {  
+                var aData = [];
+                for (var i=0; i<response.length; i++) {
+                    var rec = response[i];
+                    aData.push({
+                        certificationHeldId: rec.Id,
+                        contactId: rec.Certified_Professional__r.Id,
+                        name: rec.Certified_Professional__r.Name,
+                        date: rec.Date_Achieved__c,
+                        email:rec.Certified_Professional__r.Email,
+                        phone: rec.Certified_Professional__r.MobilePhone
+                    });
+                }
+                component.set('v.contacts', aData);
+            },
+            {
+                certificationId : component.get('v.certificationId')
+            }
+        ); 
+    }
+})
+
+<!-- CertificationStudentList.apxc -->
+public with sharing class CertificationStudentList {
+    
+    @AuraEnabled
+    public static List<Certification_Held__c> getCertifiedStudents(Id certificationId) {
+        return [SELECT Id, Certified_Professional__r.Name, Certification__r.Name,
+                       Certified_Professional__r.Id, Certified_Professional__r.Email,
+                       Certified_Professional__r.MobilePhone, Date_Achieved__c
+                FROM Certification_Held__c
+                WHERE Certification__r.Id = :certificationId
+                ORDER BY Certified_Professional__r.Name
+               ];
+    }
+    
+    @AuraEnabled
+    public static Boolean deleteStudentCertification(List<String> certificationIds) {
+        delete [SELECT id 
+                FROM Certification_Held__c 
+                WHERE Id in :certificationIds];
+        return true;
+    }
+}
+
+<!-- Example with sortable columns -->
+<!-- CertificationStudentList.cmp -->
+<aura:component extends="c:Base" controller="CertificationStudentList" implements="force:appHostable,flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes" access="global" >
+    <aura:attribute name="contacts" type="Object[]" access="private" />
+    <aura:attribute name="columns" type="Object[]" access="private" />
+    <aura:attribute name="certificationId" type="Id" default="a03B0000005MbGVIA0" access="public" />
+    <aura:attribute name="label" type="String" access="public" default="" />
+    <aura:attribute name="sortedBy" type="String" access="public" default="Name" />
+    <aura:attribute name="sortedDirection" type="String" access="public" default="asc" />
+    
+    <aura:handler name="change" value="{!v.certificationId}" action="{!c.onCertificationIdChange}"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:card title="{!v.label + ' Certifications'}">
+        <aura:set attribute="actions">
+            <lightning:buttongroup >
+                <lightning:button label="E-Mail" onclick="{!c.onCertActions}" aura:Id="btnEmail" disabled="true"/>
+                <lightning:button label="Send Cert." onclick="{!c.onCertActions}" aura:Id="btnSendCert" disabled="true"/>
+                <lightning:button label="Delete" onclick="{!c.onCertActions}" variant="destructive" aura:Id="btnDelete" disabled="true"/>
+            </lightning:buttongroup>
+        </aura:set>
+        
+        <lightning:datatable data="{!v.contacts}"
+                             columns="{!v.columns}"
+                             keyField="certificationHeldId" 
+                             aura:Id="datatable"
+                             onrowselection="{!c.onRowSelection}" onsort="{!c.onMySort}" sortedBy="{!v.sortedBy}" sortedDirection="{!v.sortedDirection}"/>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- CertificationStudentListController.js -->
+({
+    doInit: function(component, event, helper) {
+        
+        component.set('v.columns', [    
+            {label: 'Name', fieldName: 'name', type: 'text', sortable: true},
+            {label: 'Date', fieldName: 'date', type: 'datetime', sortable: true},
+            {label: 'Email', fieldName: 'email', type: 'email', sortable: true},
+            {label: 'Contact Phone', fieldName: 'phone', type: 'phone'}        
+        ]);
+    },
+    
+    onRowSelection: function(component,event,helper) {
+        helper.enableActionButtons(component,event.getParam('selectedRows').length > 0);
+    },
+    
+    onCertificationIdChange: function(component,event,helper) {
+        helper.refreshData(component);
+    },
+    
+    onCertActions: function(component,event,helper) {
+        var action =  event.getSource().getLocalId();
+        var selections = component.find('datatable').getSelectedRows();
+        
+        var selectedIds = [];
+        for (var i = 0; i < selections.length; i++){
+            selectedIds.push(selections[i].certificationHeldId);
+        }
+        selectedIds = selectedIds.join(',');
+        
+        switch(action) {
+            case 'btnEmail' : 
+                break;
+            case 'btnSendCert' :
+                break;
+            case 'btnDelete' :
+                helper.onDelete(component,selectedIds);
+                break;
+        }
+    },
+    
+    onMySort:function(component,event,helper){
+        var fieldName = event.getParam('fieldName');
+        var sortDirection = event.getParam('sortDirection');
+        // assign the latest attribute with the sorted column fieldName and sorted direction
+        component.set("v.sortedBy", fieldName);
+        component.set("v.sortedDirection", sortDirection);
+        helper.sortData(component, fieldName, sortDirection);
+    }
+})
+
+<!-- CertificationStudentListHelper.js -->
+({
+    enableActionButtons : function(component,mode) {
+        mode = !mode;
+        component.find('btnEmail').set('v.disabled',mode);
+        component.find('btnSendCert').set('v.disabled',mode);
+        component.find('btnDelete').set('v.disabled',mode);
+    },
+    
+    onDelete: function(component,selectedIds) {
+        this.callServer(
+            component,
+            "c.deleteStudentCertification",
+            function(response) {  
+                this.refreshData(component);
+            },
+            {
+                certificationIds : selectedIds
+            }
+        );
+    },
+    
+    refreshData: function(component) {
+        this.callServer(
+            component,
+            "c.getCertifiedStudents",
+            function(response) {  
+                var aData = [];
+                for (var i=0; i<response.length; i++) {
+                    aData.push({
+                        certificationHeldId: response[i].Id,
+                        contactId: response[i].Certified_Professional__r.Id,
+                        name: response[i].Certified_Professional__r.Name,
+                        date: response[i].Date_Achieved__c,
+                        email: response[i].Certified_Professional__r.Email,
+                        phone: response[i].Certified_Professional__r.MobilePhone
+                    });
+                }
+                console.log('aData',aData);
+                component.set('v.contacts', aData);
+            },
+            {
+                certificationId: component.get('v.certificationId')
+            }
+        );  
+    },
+
+     sortData: function (cmp, fieldName, sortDirection) {
+        var data = cmp.get("v.contacts");
+        var reverse = sortDirection !== 'asc';
+        //sorts the rows based on the column header that's clicked
+        data.sort(this.sortBy(fieldName, reverse))
+        cmp.set("v.contacts", data);
+    },
+
+    sortBy: function (field, reverse, primer) {
+        var key = primer ?
+            function(x) {return primer(x[field])} :
+            function(x) {return x[field]};
+        //checks if the two rows should switch places
+        reverse = !reverse ? 1 : -1;
+        return function (a, b) {
+            return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+        }
+    }
+})

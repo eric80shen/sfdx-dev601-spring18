@@ -1,0 +1,222 @@
+<!-- Lab Phase 2 
+
+•	Using Schema Builder, add a field to the Course_Attendee__c custom object named InstructorNotes__c that is a Rich Text Area.
+•	Define an Apex method that loads Course_Attendee__c records that are related to the selected student.
+•	In the onStudentSelected handler, call the Apex method, store the results in a private component attribute named History and use the results to populate a select box as illustrated in Figure 3.
+•	Define a new component named EditStudentNote that uses:
+o	A select box populated with related Course_Attendee__c records. The value for each option should be the Id from Course_Attendee__c records.
+o	Lightning Data Service to load the InstructorNotes__c data based on the selection from the select box.
+o	A lighting:inputRichText field that is bound to the InstructorNotes__c field.
+o	A button that, when pressed, uses the Lightning Data Service to store changes to InstructorNotes__c for the selected Course_Attendee_c record. 
+o	When the record is successfully saved, output a success message using the JavaScript alert() method.
+•	Modify the StudentDetail.cmp file to include a tab panel with two tabs labeled HISTORY and EDIT NOTES. If the student has no history, hide the EDIT NOTES tab and use the body of the HISTORY tab to display a message indicating that the student has not registered for any courses.
+•	In the Edit Notes tab, invoke the EditStudentNote component.
+
+-->
+
+<!-- NEW Apex class -->
+public with sharing class StudentDetail {
+
+    @AuraEnabled 
+    public static List<Course_Attendee__c> getNotesByStudent(String contactId) {
+        return [SELECT Id, InstructorNotes__c, Course_Delivery__r.Start_Date__c,     
+                       Course_Delivery__r.Course__r.Name
+				FROM Course_Attendee__c
+            	WHERE Student__c = :contactId];
+    }   
+}
+
+<!-- NEW EditStudentNote.cmp -->
+<aura:component >
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="public"/>
+    <!--<aura:attribute name="history" access="public" type="Object[]" /> -->
+    <aura:attribute name="courseAttendeeId" type="Id" access="private"/>
+    <aura:attribute name="courseAttendeeRecord" type="Course_Attendee__c" access="private"/>
+    <aura:attribute name="recordSaveError" type="String" access="private"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.history}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="recordEditor"
+                      recordId="{!v.courseAttendeeId}"
+                      targetFields="{!v.courseAttendeeRecord}"
+                      targetError="{!v.recordSaveError}"
+                      fields="Id,InstructorNotes__c" 
+                      mode="EDIT"/>
+    
+    <lightning:layout class="slds-grid_vertical">
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:select name="classSelector" 
+                              label="Select a class:" 
+                              value="{!v.courseAttendeeId}" 
+                              onchange="{!c.onCourseAttendeeChange}">
+                <aura:iteration items="{!v.history}" var="historyItem">
+                    <option value="{!historyItem.Id}">
+                        {!historyItem.Course_Delivery__r.Start_Date__c + ' - ' + historyItem.Course_Delivery__r.Course__r.Name}
+                    </option>
+                    <!--
+                    <option value="{!historyItem.courseAttendeeId}">
+                        {!historyItem.startDate + '-' + historyItem.courseName}
+                    </option>
+                    -->
+                </aura:iteration>
+            </lightning:select>            
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:inputRichText value="{!v.courseAttendeeRecord.InstructorNotes__c}" />
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small" class="slds-text-align_center">
+            <lightning:button label="Save" variant="brand" onclick="{!c.saveRecord}" />
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+</aura:component>
+
+<!-- EditStudentNoteController.js -->
+({
+    doInit : function(component, event, helper) {
+        var history = component.get('v.history');
+        if (history.length > 0) {
+            component.set('v.courseAttendeeId', history[0].Id );
+            //component.set('v.courseAttendeeId', history[0].courseAttendeeId);
+            component.find("recordEditor").reloadRecord();    
+        }         
+    },
+    
+    onCourseAttendeeChange : function(component, event, helper) {
+        component.find("recordEditor").reloadRecord();      
+    },
+    
+    saveRecord : function(component, event, helper) {
+        var recordEditor = component.find("recordEditor");
+        recordEditor.saveRecord($A.getCallback(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {       
+                alert('Record Saved');
+            } else if (saveResult.state === "INCOMPLETE") {
+                alert('User is offline, device doesn\'t support drafts.');
+            } else if (saveResult.state === "ERROR") {
+                alert('Problem saving record, error: ' + JSON.stringify(saveResult.error));
+            } else {
+                alert('Unknown problem, state: ' + saveResult.state + ', error: ' + JSON.stringify(saveResult.error));
+            }
+        }));
+    }
+})
+
+<!-- StudentDetail.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base" controller="StudentDetail">
+    
+    <aura:attribute name="contactId" access="private" type="String" />
+    <aura:attribute name="courseDeliveryId" access="private" type="String" />
+    <aura:attribute name="contact" access="public" type="Contact" />
+    <aura:attribute name="recordError" access="private" type="String" />
+    
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="private" />
+    <!--<aura:attribute name="history" type="Object[]" access="private" />-->
+    
+    <aura:handler event="c:AwInstructorsStudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.contactId}"
+                      targetFields="{!v.contact}"
+                      targetError="{!v.recordError}"
+                      fields="Name,Email,Phone,Description" />
+    
+    <aura:if isTrue="{!v.contactId != null}">
+        <lightning:card title="{!v.contact.Name}">
+            <aura:set attribute="actions">
+                <lightning:button label="Go to Record" onclick="{!c.goToRecord}"/>
+            </aura:set>
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small">
+                    <lightning:formattedEmail value="{!v.contact.Email}" />
+                    <br/>
+                    <lightning:formattedPhone value="{!v.contact.Phone}" />
+                    <br/>
+                    <lightning:formattedText value="{!v.contact.Description}" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:card>
+        <br/>
+        <lightning:tabset>
+            <lightning:tab label="HISTORY">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small">
+                        <aura:if isTrue="{! !empty(v.history) }">
+                            <!-- eventually show history here -->
+                            <aura:set attribute="else">
+                                The student has not registered for any courses.
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:tab>
+            <aura:if isTrue="{! !empty(v.history) }">
+                <lightning:tab label="EDIT NOTES">
+                    <lightning:layout>
+                        <lightning:layoutItem padding="around-small">
+                            <c:EditStudentNote history="{!v.history}" />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:tab>            
+            </aura:if>
+        </lightning:tabset>
+    </aura:if>
+    
+</aura:component>
+
+<!-- StudentDetailController.js -->
+({
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        var courseDeliveryId = event.getParam('contactId');
+        component.set('v.contactId',contactId);
+        component.set('v.courseDeliveryId', courseDeliveryId);
+        component.find('recordLoader').reloadRecord();
+        
+        helper.callServer(
+            component,
+            "c.getNotesByStudent",
+            function(response) {
+                component.set('v.history', response);
+                //var aResults = [];
+                //
+                //for (var i=0; i<response.length; i++) {
+                //    var obj = {
+                //        courseAttendeeId: response[i].Id,
+                //        startDate: response[i].Course_Delivery__r.Start_Date__c,
+                //        courseName: response[i].Course_Delivery__r.Course__r.Name
+                //    }
+                //    if (response[i].InstructorNotes__c) {
+                //        obj.instructorNotes = response[i].InstructorNotes__c;
+                //    } else {
+                //        obj.instructorNotes = "No notes";
+                //    }
+                //    aResults.push(obj);   
+                //}
+                //component.set('v.history', aResults);             
+            },
+            {
+                contactId : contactId
+            }
+        );
+    },
+    
+    goToRecord : function(component, event, helper) {
+        var evt = $A.get("event.force:navigateToSObject");
+        if (evt) {
+            evt.setParams({
+                "recordId": component.get('v.contactId'),
+                "slideDevName": "detail"
+            });
+            evt.fire();
+        } else {
+            alert('Feature not supported on this platform');
+        }        
+    }
+})

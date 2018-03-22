@@ -1,0 +1,14 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:button label="Click to Check Browser" onclick="{!c.checkBrowser}" />
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    checkBrowser : function(component, event, helper) {
+        var device = $A.get("$Browser.formFactor"); // Returns DESKTOP, PHONE or TABLET
+        alert("You are using a " + device);		
+    }
+})

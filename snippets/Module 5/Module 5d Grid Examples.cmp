@@ -1,0 +1,192 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <p><strong>Grid System Building Blocks - SLDS</strong></p>
+    <div class="slds-grid slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+    </div>
+    <p><strong>Grid System Building Blocks - Lightning layout</strong></p>
+    <lightning:layout horizontalAlign="space" class="slds-box">
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 1</lightning:layoutItem>
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 2</lightning:layoutItem>
+    </lightning:layout> 
+
+    <br/><p><strong>Defining a Vertical Box Layout - SLDS</strong></p>
+    <div class="slds-grid slds-grid_vertical slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+    </div>
+    <p><strong>Defining a Vertical Box Lightning Layout</strong></p>
+    <lightning:layout class="slds-grid_vertical slds-box">
+        <lightning:layoutItem class="slds-box">This is Row 1</lightning:layoutItem>
+        <lightning:layoutItem class="slds-box">This is Row 2</lightning:layoutItem>
+    </lightning:layout>
+    
+    <br/><p><strong>Defining a Fit Layout - SLDS</strong></p>
+    <div class="slds-grid slds-grid_frame slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+    </div>
+    <p><strong>Defining a Fit Lightning Layout</strong></p>
+    <lightning:layout horizontalAlign="space" class="slds-grid_frame slds-box" >
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 1</lightning:layoutItem >
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 2</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Centering Columns - SLDS</strong></p>
+    <div class="slds-grid slds-grid_align-center slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+    </div>
+    <p><strong>Centering Columns with Lightning Layout</strong></p>
+    <lightning:layout horizontalAlign="center" class="slds-box" >
+        <lightning:layoutItem class="slds-box">This is Column 1</lightning:layoutItem >
+        <lightning:layoutItem class="slds-box">This is Column 2</lightning:layoutItem>
+    </lightning:layout> 
+
+    <br/><p><strong>Justifying Columns - SLDS</strong></p>
+    <div class="slds-grid slds-grid_align-spread slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+        <div class="slds-col slds-box">This is Column 3</div>
+    </div>
+    <p><strong>Justifying Columns with Lightning Layout</strong></p>
+    <lightning:layout horizontalAlign="spread" class="slds-box" >
+        <lightning:layoutItem class="slds-box">This is Column 1</lightning:layoutItem >
+        <lightning:layoutItem class="slds-box">This is Column 2</lightning:layoutItem>
+        <lightning:layoutItem class="slds-box">This is Column 3</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Distributing Columns - SLDS</strong></p>
+    <div class="slds-grid slds-grid_align-space slds-box">
+        <div class="slds-col slds-box">This is Column 1</div>
+        <div class="slds-col slds-box">This is Column 2</div>
+        <div class="slds-col slds-box">This is Column 3</div>
+    </div>
+    <p><strong>Distributing Columns with Lightning Layout</strong></p>
+    <lightning:layout horizontalAlign="space" class="slds-box">
+        <lightning:layoutItem class="slds-box">This is Column 1</lightning:layoutItem >
+        <lightning:layoutItem class="slds-box">This is Column 2</lightning:layoutItem>
+        <lightning:layoutItem class="slds-box">This is Column 3</lightning:layoutItem>
+    </lightning:layout> 
+
+    <br/><p><strong>Adding Column Padding - SLDS</strong></p>
+    <div class="slds-grid slds-box">
+        <div class="slds-col slds-col_padded slds-box">This is content for column 1</div>
+        <div class="slds-col slds-col_padded-medium slds-box">This is content for column 2</div>
+        <div class="slds-col slds-col_padded-large slds-box">This is content for column 3</div>
+    </div>
+    <p><strong>Adding Column Padding with Lightning Layout</strong></p>
+    <lightning:layout class="slds-box">
+        <lightning:layoutItem padding="horizontal-small" flexibility="grow" class="slds-box">This is content for column 1</lightning:layoutItem >
+        <lightning:layoutItem padding="horizontal-medium" flexibility="grow" class="slds-box">This is content for column 2</lightning:layoutItem>
+        <lightning:layoutItem padding="horizontal-large" flexibility="grow" class="slds-box">This is content for column 3</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Adding Space Between Columns - SLDS</strong></p>
+    <div class="slds-grid slds-box">
+        <div class="slds-col slds-col_padded slds-grid_pull-padded slds-box">This is content for column 1</div>
+        <div class="slds-col slds-col_padded slds-box">This is content for column 2</div>
+        <div class="slds-col slds-col_padded-large slds-grid_pull-padded-large slds-box">This is content for column 3</div>
+    </div>
+    <p><strong>Adding Space Between Columns with Lightning Layout</strong></p>
+    <lightning:layout class="slds-box">
+        <lightning:layoutItem class="slds-col_padded slds-grid_pull-padded slds-box">This is content for column 1</lightning:layoutItem>
+        <lightning:layoutItem class="slds-col_padded slds-box">This is content for column 2</lightning:layoutItem>
+        <lightning:layoutItem class="slds-col_padded-large slds-grid_pull-padded-large slds-box">This is content for column 3</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Adding Column Borders - SLDS</strong></p>
+    <div class="slds-grid slds-box" style="margin: 10px">
+        <div class="slds-col slds-col_padded slds-grid_pull-padded slds-col-rule_bottom">
+            This is content for column 1
+        </div>
+        <div class="slds-col slds-col_padded slds-col-rule_top slds-col-rule_bottom slds-col-rule_left slds-col-rule_right">
+            This is content for column 2
+        </div>
+        <div class="slds-col slds-col_padded-large slds-grid_pull-padded-large slds-col-rule_bottom">
+            This is content for column 3
+        </div>
+    </div>
+    <p><strong>Adding Column Borders with Lightning Layout</strong></p>
+    <lightning:layout class="slds-box">
+        <lightning:layoutItem class="slds-col_padded slds-col_rule-bottom">This is content for column 1</lightning:layoutItem>
+        <lightning:layoutItem class="slds-col_padded slds-col_rule-bottom slds-col-rule_left slds-col-rule_right">This is content for column 2</lightning:layoutItem>
+        <lightning:layoutItem class="slds-col_padded-large slds-col_rule-bottom">This is content for column 3</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Specifying vertical alignment - SLDS</strong></p>
+    <div class="slds-grid slds-grid_frame slds-box">
+        <div class="slds-col slds-align-top slds-box">Top Align</div>
+        <div class="slds-col slds-align-middle slds-box">Middle Align</div>
+        <div class="slds-col slds-align-bottom slds-box">Bottom Align</div>
+    </div>
+    <p><strong>Specifying vertical alignment with Lightning Layout</strong></p>
+    <lightning:layout class="slds-grid_frame slds-box">
+        <lightning:layoutItem flexibility="grow" class="slds-align-top slds-box">Top Align</lightning:layoutItem>
+        <lightning:layoutItem flexibility="grow" class="slds-align-middle slds-box">Middle Align</lightning:layoutItem>
+        <lightning:layoutItem flexibility="grow" class="slds-align-bottom slds-box">Bottom Align</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Specifying columns with relative sizing - SLDS</strong></p>
+    <div class="slds-grid slds-wrap slds-box">
+        <header class="slds-col slds-size_1-of-1 slds-box">Header</header>
+        <nav class="slds-col slds-size_3-of-12 slds-box">Nav</nav>
+        <div class="slds-col slds-size_6-of-12 slds-box">Body</div>
+        <aside class="slds-col slds-size_3-of-12 slds-box">Aside</aside>
+        <footer class="slds-col slds-size_1-of-1 slds-box">Footer</footer>
+    </div>
+    <p><strong>Specifying columns with relative sizing with Lightning Layout</strong></p>
+    <lightning:layout class="slds-wrap slds-box">
+        <lightning:layoutItem class="slds-align-top slds-box" size="12">Header</lightning:layoutItem>
+        <lightning:layoutItem size="3" class="slds-box">Nav</lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-box">Body</lightning:layoutItem>
+        <lightning:layoutItem size="3" class="slds-box">Aside</lightning:layoutItem>
+        <lightning:layoutItem size="12" class="slds-box">Bottom Align</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Implementing a responsive design - SLDS</strong></p>
+    <div class="slds-grid slds-wrap slds-box">
+        <header class="slds-col slds-size_1-of-1 slds-box">Header</header>
+        <nav class="slds-col slds-size_3-of-12 slds-medium-size_1-of-1 slds-box">Nav</nav>
+        <div class="slds-col slds-size_6-of-12 slds-medium-size_3-of-4 slds-box">Body</div>
+        <aside class="slds-col slds-size_3-of-12 slds-medium-size_1-of-4 slds-box">Aside</aside>
+        <footer class="slds-col slds-size_1-of-1 slds-box">Footer</footer>
+    </div>
+    <p><strong>Implementing a responsive design with Lightning Layout</strong></p>
+    <lightning:layout class="slds-wrap slds-box">
+        <lightning:layoutItem size="12" class="slds-box">Header</lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="3" mediumDeviceSize="12" class="slds-box">Nav</lightning:layoutItem>
+        <lightning:layoutItem size="9" smallDeviceSize="6" mediumDeviceSize="9" class="slds-box">Body</lightning:layoutItem>
+        <lightning:layoutItem size="3" smallDeviceSize="3" mediumDeviceSize="3" class="slds-box">Aside</lightning:layoutItem>
+        <lightning:layoutItem size="12" class="slds-box">Footer</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Setting column order - SLDS</strong></p>
+    <div class="slds-grid slds-wrap slds-box">
+        <nav class="slds-col slds-size_1-of-1 slds-small-order_2 slds-medium-order_1 slds-box">Nav</nav>
+        <div class="slds-col slds-size_1-of-2 slds-small-order_1 slds-medium-order_3 slds-box">Main</div>
+        <aside class="slds-col slds-size_1-of-2 slds-small-order_1 slds-medium-order_2 slds-box">Aside</aside>
+    </div>        
+    
+    <br/><p><strong>Using Containers - SLDS</strong></p>
+    <div class="slds-container_small slds-box">.slds-container_small</div>
+    <div class="slds-container_medium slds-box">.slds-container_medium</div>
+    <div class="slds-container_large slds-box">.slds-container_large</div>
+    <div class="slds-container_fluid slds-box">.slds-container_fluid</div>
+    <div class="slds-container_left slds-container_small slds-box">.slds-container_left .slds-container_small</div>
+    <div class="slds-container_center slds-container_small slds-box">.slds-container_center .slds-container_small</div>
+    <div class="slds-container_right slds-container_small slds-box">.slds-container_right .slds-container_small</div>        
+    
+    <br/><p><strong>Using Boxes - SLDS</strong></p>
+    <div class="slds-box">
+        <p>This is a regular sized box.</p>
+    </div>
+    <div class="slds-box slds-box_small">
+        <p>This is a small box.</p>
+    </div>
+    <div class="slds-box slds-box_x-small">
+        <p>This is an extra small box.</p>
+    </div>      
+    
+</aura:component>

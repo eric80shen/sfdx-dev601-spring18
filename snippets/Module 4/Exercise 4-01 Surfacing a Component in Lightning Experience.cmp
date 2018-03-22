@@ -1,0 +1,56 @@
+<!--
+
+Create an AwInstructors component that invokes the StudentDetail and StudentBrowser components in a Lightning Layout. This component, in turn, will be deployed on a Lightning tab into Lightning Experience.
+
+Note that deploying a Lightning Component in this fashion removes the title bar that is automatically injected by Lightning App Builder.
+
+During this exercise you will:
+1.	Define a top-level component that invokes all of your application's components.
+2.	Add an interface to your component.
+3.	Upload a custom tab icon.
+4.	Define a Lightning Component tab.
+5.	Surface a Lightning Component tab in a Lightning Experience App.
+
+-->
+
+<!-- NEW AwInstructors.cmp
+
+Description: AwInstructors – all views
+
+Lightning Tab: Checked
+Lightning Page: Checked
+
+-->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:layout horizontalAlign="space">
+        
+        <lightning:layoutItem flexibility="auto" padding="around-small" size="8">
+            <c:StudentBrowser />
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem flexibility="auto" padding="around-small" size="4">
+            <c:StudentDetail />
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+
+</aura:component>
+
+<!--
+
+Upload some docs:
+
+Document Name: AwInstructorsTabIcon
+Externally Available Image: Checked
+Folder: Shared Documents
+/DEV601/assets/images/graduate.png
+
+Document Name: PanicButtonIconLarge
+Externally Available Image: Checked
+Folder: Shared Documents
+/DEV601/assets/images/emergency_stop _largeicon.png
+
+Create Aw Instructors component tab and add to Sales app. Use AwInstructorsTabIcon
+as the tab style.
+-->

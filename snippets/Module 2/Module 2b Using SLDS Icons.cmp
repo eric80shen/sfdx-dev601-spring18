@@ -1,0 +1,10 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <lightning:card iconName="action:add_contact" title="Add Contact Information">   
+        <div class="slds-p-horizontal_medium">    
+            // content goes here
+        </div>
+    </lightning:card>
+    
+</aura:component>

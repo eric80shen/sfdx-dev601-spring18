@@ -1,0 +1,117 @@
+<!-- BoatReviews.cmp -->
+<aura:component controller="BoatReviews">
+    
+    <aura:attribute name="boat" type="Boat__c" access="public" />
+    <aura:attribute name="boatReviews" type="BoatReview__c[]" access="private" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.boat}" action="{!c.doInit}" />
+    <aura:method name="refresh" action="{!c.doInit}" />
+    
+    <ui:scrollerWrapper class="scrollerSize">
+        <aura:if isTrue="{! !empty(v.boatReviews) }">
+            <div class="slds-feed">
+                <ul class="slds-feed__list">
+                    <aura:iteration items="{!v.boatReviews}" var="boatReview">
+                        <li class="slds-feed__item">
+                            <article class="slds-post">
+                                <header class="slds-post__header slds-media">
+                                    <div class="slds-media__figure">
+                                        <a href="javascript:void(0);" class="slds-avatar slds-avatar_circle slds-avatar_large">
+                                            <img alt="{!boatReview.CreatedBy.Name}" src="{!boatReview.CreatedBy.SmallPhotoUrl}" title="{!boatReview.CreatedBy.Name + 's avatar'}" />
+                                        </a>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <div class="slds-grid slds-grid_align-spread slds-has-flexi-truncate">
+                                            <p><a data-userid="{!boatReview.CreatedBy.Id}" 
+                                                  title="{!boatReview.CreatedBy.Name}" 
+                                                  onclick="{!c.onUserInfoClick}">{!boatReview.CreatedBy.Name}</a> — 
+                                                {!boatReview.CreatedBy.CompanyName}</p>
+                                        </div>
+                                        <p class="slds-text-body_small">
+                                            <lightning:formattedDateTime value="{!boatReview.CreatedDate}"
+                                                                         year="numeric"
+                                                                         month="short"
+                                                                         day="numeric"
+                                                                         hour="numeric"
+                                                                         minute="2-digit"
+                                                                         second="2-digit"
+                                                                         hour12="true"/>
+                                            
+                                        </p>
+                                    </div>
+                                </header>
+                                <div class="slds-post__content slds-text-longform">
+                                    <p><ui:outputRichText value="{!boatReview.Comment__c}" /></p>
+                                </div>
+                                <div class="slds-post__content">
+                                    <p><c:FiveStarRating value="{!boatReview.Rating__c}" readonly="true" /></p>
+                                </div>
+                            </article>
+                        </li>
+                    </aura:iteration>
+                </ul>
+            </div> 
+            <aura:set attribute="else">
+                <div class="slds-align_absolute-center">
+                    No reviews available
+                </div>
+            </aura:set>            
+        </aura:if>
+    </ui:scrollerWrapper>
+
+</aura:component>
+
+<!-- BoatReviewsController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+	onUserInfoClick : function(component, event, helper) {
+        var userId = event.currentTarget.getAttribute("data-userid");
+        var evt = $A.get("e.force:navigateToSObject");
+        if (evt) {
+            evt.setParams({
+                "recordId" : userId,
+            });
+            evt.fire();           
+        }
+    }    
+})
+
+<!-- BoatReviewsHelper.js -->
+({
+	onInit : function(component, event, helper) {
+		var action = component.get("c.getAll");
+        
+        action.setParams({
+            boatId : component.get('v.boat').Id
+        });	
+        
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (component.isValid() && state === "SUCCESS") {
+                component.set('v.boatReviews',response.getReturnValue());
+            }
+            else if (component.isValid() && state === "ERROR") {    
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors ", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error: " + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown error");
+                }
+            }
+        });
+        
+        $A.enqueueAction(action);        
+	}
+})
+
+<!-- BoatReviews.css -->
+.THIS.scrollerSize {
+    height: 250px;
+}

@@ -1,0 +1,98 @@
+<!--
+
+Modify the lightning:layout in your AwInstructors component to make the application responsive to different screen widths 
+
+Make the Student Gallery independently scrollable
+
+Tasks:
+
+2. Define component attributes.
+3. Implement a grid-based layout.
+4. Use the <lightning:button> component to output icon buttons.
+5. Adjust the styling of the component.
+
+-->
+
+<!-- AwInstructors.cmp -->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="viewMode" type="String" default="students" access="private" />
+    <aura:attribute name="certificationId" type="Id" access="private" />
+    <aura:attribute name="certificationLabel" type="String" access="private" />
+
+    <lightning:layout horizontalAlign="space" multipleRows="true">
+        
+        <lightning:layoutItem padding="around-small" size="12"
+                              largeDeviceSize="2"
+                              mediumDeviceSize="3"
+                              smallDeviceSize="12">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="6"
+                                  largeDeviceSize="7"
+                                  mediumDeviceSize="5"
+                                  smallDeviceSize="12">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="4"
+                                  largeDeviceSize="3"
+                                  mediumDeviceSize="4"
+                                  smallDeviceSize="12">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                
+                <lightning:layoutItem padding="around-small" size="10"
+                                      largeDeviceSize="10"
+                                      mediumDeviceSize="9"
+                                      smallDeviceSize="12">
+                    <c:CertificationStudentList label="{!v.certificationLabel}" 
+                                                certificationId="{!v.certificationId}" />
+                </lightning:layoutItem>
+                
+            </aura:set>
+        </aura:if>
+        
+    </lightning:layout>
+
+</aura:component>
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    <aura:attribute name="selectedCourseDeliveryId" type="String" access="private" default="" />
+    <aura:attribute name="selectedContactId" type="String" access="private" default="" />
+    
+    <aura:registerEvent name="broadcastStudentSelected" type="c:AwInstructorsStudentSelected"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}" />
+	
+    <div class="slds-m-bottom_small">
+        <!-- Following syntax saves having to write a handler statement -->
+	    <c:StudentBrowserForm onStudentFilterChange="{!c.onStudentFilterChange}" />
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+            <ui:scrollerWrapper class="scrollerSize">
+                <c:StudentTiles students="{!v.studentList}" 
+                                selectedStudentId="{!v.selectedContactId}"/>
+            </ui:scrollerWrapper>
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowser.css -->
+.THIS .scrollerSize {
+    max-height: 400px;
+}

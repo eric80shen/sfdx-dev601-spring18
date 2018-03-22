@@ -1,0 +1,32 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <div class="slds-box slds-size--1-of-4">
+        
+        <lightning:input aura:id="celsius" 
+                         type="text" 
+                         name="celsius" 
+                         label="Celsius" 
+                         onchange="{!c.handleCelsiusChange}"/>
+
+        <lightning:input aura:id="fahrenheit" 
+                         type="text" 
+                         name="fahrenheit" 
+                         label="Fahrenheit" 
+                         onchange="{!c.handleFahrenheitChange}"/>    
+    </div>
+    
+</aura:component>
+
+<!-- TempConverterController.js -->
+({
+    handleCelsiusChange : function(component, event, helper) {
+        var celsiusValue = component.find("celsius").get("v.value");
+        var fahrenheitValue = celsiusValue * 9 / 5 + 32;
+        component.find("fahrenheit").set("v.value",fahrenheitValue);
+    },
+    handleFahrenheitChange : function(component, event, helper) {
+        var fahrenheitValue = component.find("fahrenheit").get("v.value");
+        var celsiusValue = (fahrenheitValue - 32) / 1.8;
+        component.find("celsius").set("v.value",celsiusValue);
+    }     
+})

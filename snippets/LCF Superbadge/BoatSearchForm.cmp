@@ -1,0 +1,95 @@
+<!-- BoatSearchForm.cmp -->
+<aura:component controller="BoatSearchResults">
+    
+    <aura:attribute name="boatTypes" type="BoatType__c[]" default="" />
+    <aura:attribute name="selectedBoatTypeId" type="Id" />
+    <aura:attribute name="isLex" type="Boolean" default="false" access="private" />
+    
+    <aura:registerEvent name="formsubmit" type="c:FormSubmit" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+	<lightning:layout horizontalAlign="center">
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:select label="All Types" 
+                              variant="label-hidden"
+                              name="boattype"
+                              value="{!v.selectedBoatTypeId}" >
+                <option value="">All Types</option>
+                <aura:iteration items="{!v.boatTypes}" var="boatType">
+                    <option value="{!boatType.Id}">
+                        {!boatType.Name}
+                    </option>
+                </aura:iteration>
+            </lightning:select>  
+        </lightning:layoutItem>   
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:button label="Search" onclick="{!c.onFormSubmit}" aura:id="btnSearch" variant="brand"/>
+        </lightning:layoutItem>
+        
+        <aura:if isTrue="{!v.isLex}">
+            <lightning:layoutItem padding="around-small">
+                <lightning:button label="New" onclick="{!c.onNew}" aura:id="btnNew" variant="neutral" />
+            </lightning:layoutItem>           
+        </aura:if>     
+        
+    </lightning:layout>
+</aura:component>
+
+<!-- BoatSearchFormController.js -->
+({
+	doInit : function(component, event, helper) {
+        
+        var toast = $A.get("event.force:showToast");
+        if (toast) {
+            component.set('v.isLex', true);
+        }
+        
+		var action = component.get("c.getBoatTypes");
+        
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if (component.isValid() && state === "SUCCESS") {
+                component.set('v.boatTypes', response.getReturnValue());
+            }
+            else if (component.isValid() && state === "ERROR") {    
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors ", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error: " + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown error");
+                }
+            }
+        });     
+        
+        $A.enqueueAction(action);
+	},
+    
+    onNew : function(component, event, helper) {
+        var boatType = component.get('v.selectedBoatTypeId') || null;
+        
+        var createRecordEvent = $A.get("e.force:createRecord");
+        createRecordEvent.setParams({
+            "entityApiName": "Boat__c",
+            "defaultFieldValues": {
+                'BoatType__c' : boatType
+            }
+        });
+        createRecordEvent.fire();
+    },
+    
+    onFormSubmit : function(component, event, helper) {
+        var evt = component.getEvent("formsubmit");
+        evt.setParams({
+            formData: {
+                boatTypeId : component.get('v.selectedBoatTypeId')
+            }
+        });
+        evt.fire();
+    }
+})

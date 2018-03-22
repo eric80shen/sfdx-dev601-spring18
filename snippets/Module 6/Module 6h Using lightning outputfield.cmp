@@ -1,0 +1,11 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+	<!-- Replace the Contact record ID with your own -->
+    <lightning:recordViewForm recordId="0031I000003lfEIQAY" objectApiName="Contact">
+        <lightning:outputField fieldName="Name" />
+        <lightning:outputField fieldName="Phone" />
+        <lightning:outputField fieldName="AccountId" />
+    </lightning:recordViewForm>
+
+</aura:component>

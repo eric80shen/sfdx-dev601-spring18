@@ -1,0 +1,21 @@
+<!--
+
+Install the charting components from AppExchange and use App Builder to deploy a custom chart
+
+	WATCH OUT FOR BROWSER BLOCKING POP-UPS!!!
+
+JSON Data String -->
+
+[{
+	"category": "Pizza",
+	"value": "30",
+	"color": "#9de219"
+}, {
+	"category": "Doritos",
+	"value": "40",
+	"color": "#90cc38"
+}, {
+	"category": "Jerky",
+	"value": "30",
+	"color": "#068c35"
+}]

@@ -1,0 +1,115 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using lightning:select with static options</strong></p>
+        <lightning:select name="Captain1" label="Select a Captain:" aura:Id="idCaptain1" value="2" onchange="{!c.onCaptChange}">
+            <option value="">Choose one...</option>
+            <option value="1">Kirk</option>
+            <option value="2">Sisko</option>
+            <option value="3">Janeway</option>
+        </lightning:select>
+    </div>
+    
+    <aura:attribute name="captains" type="Object[]" default="[{label:'Kirk',value:'James T Kirk'},{label:'Picard',value:'Jean Luc Picard'}]"/>
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using aura:iteration</strong></p>
+        <lightning:select name="Captain2" label="Select a Captain:" aura:Id="idCaptain2" value="2" onchange="{!c.onCaptChange}">
+            <aura:iteration items="{!v.captains}" var="captain">
+                <option value="{!captain.value}">
+                    {!captain.label}
+                </option>
+            </aura:iteration>
+        </lightning:select> 
+    </div>
+    
+    <!-- Launch function on component initialization -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using JavaScript to dynamically generate options</strong></p>
+        <lightning:select name="Captain3" label="Select a Captain:" aura:Id="idCaptain3" onchange="{!c.onCaptChange}">
+            <option value="0">Please Wait...</option>
+        </lightning:select>
+    </div>
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    doInit: function(component, event, helper) {
+        //helper.createComponent1(component);
+        helper.createComponent2(component);
+    },
+    onCaptChange : function(component, event, helper){
+        var selectComponent = event.getSource();
+        var selectedVal = selectComponent.get('v.value');
+        alert("You selected " + selectedVal );
+    }    
+})
+
+<!-- TestCmpHelper.js -->
+({
+    // This function uses the $A.createComponent call
+    createComponent1 : function(component) {
+        var opts = [
+            { id: 1, label: 'James T Kirk' }, { id: 2, label: 'Jean Luc Picard' }
+        ];
+        
+        var defaultValue = 2;
+        var cmp = component.find('idCaptain3');
+        cmp.set('v.body',[]); // clear all options
+        var body = cmp.get('v.body');
+        
+        for (var i=0; i<opts.length; i++) {
+            $A.createComponent(
+                "aura:html",
+                {
+                    "tag": "option",
+                    "HTMLAttributes": {
+                        value: opts[i].id, text: opts[i].label
+                    }
+                },
+                function(newOption){
+                    // Add the new button to the body
+                    if (component.isValid()) {   
+                        body.push(newOption);
+                        cmp.set("v.body", body);
+                    }
+                }
+            );
+        }
+        cmp.set("v.value",defaultValue);        
+    },
+    // This function uses the $A.createComponents call (more efficient)
+    createComponent2 : function(component) {
+        var opts = [
+            { id: 1, label: 'James T Kirk' }, { id: 2, label: 'Jean Luc Picard' }
+        ];
+        
+        var defaultValue = 2;
+        var cmp = component.find('idCaptain3');
+        cmp.set('v.body',[]); // clear all options
+        var body = cmp.get('v.body');
+        
+        var newOpts = [];
+        for (var i=0; i<opts.length; i++) {
+            newOpts.push(["aura:html", {
+                "tag": "option",
+                "HTMLAttributes": {
+                    value: opts[i].id,
+                    text: opts[i].label
+                }
+            }]);           
+        }
+        
+        $A.createComponents(
+            newOpts,
+            function(newOptions) {
+                if ( component.isValid() ) {
+                    cmp.set("v.body", newOptions);
+                    cmp.set("v.value",defaultValue); 
+                }
+            }
+        );     
+    }    
+})

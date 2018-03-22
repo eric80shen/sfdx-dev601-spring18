@@ -1,0 +1,38 @@
+<!-- FiveStarRating.cmp -->
+<aura:component access="public">
+    
+    <aura:attribute name="value" type="Integer" default="0" access="public"/>
+    <aura:attribute name="readonly" type="Boolean" default="false" />
+    
+    <aura:handler name="change" value="{!v.value}" action="{!c.onValueChange}" />
+    
+    <ltng:require styles="{!join(',', $Resource.fivestar +'/rating.css', $Resource.fivestar +'/stars.svg')}"
+                  scripts="{!$Resource.fivestar + '/rating.js'}"
+                  afterScriptsLoaded="{!c.afterScriptsLoaded}" />
+    
+    <ul aura:id="ratingarea" class="{! v.readonly ? 'readonly c-rating' : 'c-rating' }" />
+
+</aura:component>
+
+<!-- FiveStarRatingController.js -->
+({
+    afterScriptsLoaded : function(component, event, helper) {
+        var domEl = component.find('ratingarea').getElement();
+        var currentRating = component.get('v.value');
+        var readOnly = component.get('v.readonly');
+        
+        var maxRating = 5;
+        
+        var callback = function(rating) {
+            component.set('v.value', rating);
+        }
+        component.ratingObj = rating(domEl, currentRating, maxRating, callback, readOnly); 
+    },
+    
+    onValueChange : function(component, event, helper) {
+        if (component.ratingObj) {
+            var value = component.get('v.value');
+            component.ratingObj.setRating(value, false);
+        }
+    }
+})

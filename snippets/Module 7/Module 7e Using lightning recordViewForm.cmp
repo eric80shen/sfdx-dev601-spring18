@@ -1,0 +1,24 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <!-- Insert valid TripReport__c record ID -->
+    <aura:attribute name="selectedRecordId" type="Id" default="a071o000019QpLGAA0" />
+    
+    <lightning:recordViewForm recordId="{!v.selectedRecordId}" 
+                              objectApiName="TripReport__c">
+        
+        <div class="slds-box slds-grid slds-size_1-of-2">
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="Name" />
+                <lightning:outputField fieldName="Date__c" />
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <lightning:outputField fieldName="ReviewType__c" />
+                <lightning:outputField fieldName="Instructor__r.Name" />
+                <lightning:outputField fieldName="Review__c" />  
+            </div>
+        </div>
+        
+    </lightning:recordViewForm>
+   
+</aura:component>

@@ -1,0 +1,27 @@
+<!-- 
+
+Experiment with debugging and logging
+
+Tasks:
+1. Log variable output to the debugger.
+2. Step through your code interactively.
+3. Invoke functions directly from the browser console.
+
+-->
+
+<!-- StudentTileController.js -->
+({
+	onStudentClick : function(component, event, helper) {
+        //debugger;
+		//alert(component.get('v.student').Name);
+        var student = component.get('v.student');
+        console.log('Name ', student.Name);
+        console.log('Photo ', student.PhotoUrl);
+	}
+})
+
+<!--
+
+$A.message("Hello World");
+
+-->

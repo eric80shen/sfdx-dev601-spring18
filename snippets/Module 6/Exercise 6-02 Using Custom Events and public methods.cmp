@@ -1,0 +1,206 @@
+<!--
+
+During this exercise you will create, register, raise, and handle a custom event. You will modify the DataGrid component that you created in the prior walkthrough to fire a logical event when a user clicks on a grid row. This event, in turn, will be handled by the StudentBrowser component where it will trigger the output of the selected student information.
+
+Tasks:
+1. Define a custom event.
+2. Register the event with the DataGrid component.
+3. Aggregate data to transmit with the event.
+4. Raise the event from the DataGrid component.
+5. Listen and handle the custom event from the StudentList component.
+6. Define a public method on a component.
+7. Invoke a public method on a component.
+8. Discuss the challenges associated with deferred component instantiation.
+
+-->
+
+<!-- NEW DataGridRowClick.evt
+
+Description: Fired by the DataGridTable component when a user clicks anywhere on a data row.
+
+-->
+<aura:event type="COMPONENT" description="Fired from DataGridTable">
+    
+    <aura:attribute name="pk" type="String"/>
+    <aura:attribute name="domEl" type="Object"/>
+    
+</aura:event>
+
+<!-- DataGridTable.cmp -->
+<aura:component >
+    <aura:attribute name="cols" type="Object[]" access="GLOBAL" description="The grid columns."/> 
+    <aura:attribute name="rows" type="Object[]" access="GLOBAL" description="The grid row data."/>
+    <aura:attribute name="selectedRow" type="Object" access="GLOBAL" />
+
+    <aura:method name="setSelection" action="{!c.setSelection}" access="PUBLIC"
+                 description="Set selected row, by ID">
+        <aura:attribute name="Id" type="String" default="" />
+    </aura:method>
+
+    <aura:registerEvent name="rowclick" type="c:DataGridRowClick"/>
+
+    <table class="slds-table slds-table--bordered slds-max-medium-table--stacked">
+        <thead>
+            <tr class="slds-text-heading--label">
+                <aura:iteration items="{!v.cols}" var="col" indexVar="idx">
+                    <th scope="col" class="{!col.class}"><span class="slds-truncate">{!col.label}</span></th>  
+                </aura:iteration>
+            </tr>
+        </thead>
+        <tbody >
+            <aura:iteration items="{!v.rows}" var="row" indexVar="idx">
+                <tr aura:Id="datarow" class="slds-hint-parent" data-row="{!idx}" data-pk="{!row.pk}" onclick="{!c.onRowClick}" ondblclick="{!c.onRowDblClick}">
+                    <aura:iteration items="{!row.data}" var="colData">
+                        <td class="{!colData.class}"  data-label="{!colData.label}">
+                            <span class="slds-truncate">
+                                <aura:if isTrue="{!colData.type == 'phone'}">
+                                    <lightning:formattedPhone value="{!colData.value}" />
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!colData.type == 'email'}">
+                                            <lightning:formattedEmail value="{!colData.value}" />
+                                            <aura:set attribute="else">
+                                                {!colData.value}
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </td>
+                    </aura:iteration>
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table>
+    
+</aura:component>
+
+<!-- DataGridTableController.js -->
+({
+	onRowClick : function(component, event, helper) {
+		var target = event.currentTarget;
+        helper.setSelectedRow(component,target);
+        
+        var compEvent = component.getEvent("rowclick");
+        compEvent.setParams({
+            pk : target.getAttribute('data-pk'), 
+            domEl: target
+        });
+        compEvent.fire();
+    },
+    
+    setSelection: function(component,event,helper) {
+        var params = event.getParam('arguments');
+        var pk = params.Id;
+        var targets = component.find("datarow");
+        for (var i=0; i<targets.length; i++) {
+            if (targets[i].getElement().getAttribute(
+                'data-pk') == pk) {
+                helper.setSelectedRow(component,targets[i]);
+                break;
+            }
+        } 
+    }
+})
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    <aura:attribute name="selectedCourseDeliveryId" type="String" access="private" default="" />
+    <aura:attribute name="selectedContactId" type="String" access="private" default="" />
+    
+    <aura:registerEvent name="broadcastStudentSelected" type="c:AwInstructorsStudentSelected"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}" />
+	<aura:handler name="rowclick" event="c:DataGridRowClick" action="{!c.onDataGridRowClick}"/>
+
+    <div class="slds-m-bottom_small">
+        <!-- Following syntax saves having to write a handler statement -->
+	    <c:StudentBrowserForm onStudentFilterChange="{!c.onStudentFilterChange}" />
+    </div>
+    
+    <lightning:tabset variant="scoped">
+        
+        <lightning:tab label="Grid">
+            <ui:scrollerWrapper class="scrollerSize">
+                <c:DataGrid data="{!v.studentList}" pkField="Id" aura:id="datagrid">    
+                    <c:DataGridColumn fieldName="Name" label="Name" />
+                    <c:DataGridColumn fieldName="Title" label="Title" hidden="true" />
+                    <c:DataGridColumn fieldName="Phone" label="Phone" type="phone" />
+                    <c:DataGridColumn fieldName="Email" label="E-Mail" type="email" />
+                </c:DataGrid>
+            </ui:scrollerWrapper>
+        </lightning:tab>        
+        
+    	<lightning:tab label="Gallery">
+            <ui:scrollerWrapper class="scrollerSize">
+                <c:StudentTiles students="{!v.studentList}" 
+                                selectedStudentId="{!v.selectedContactId}"/>
+            </ui:scrollerWrapper>
+        </lightning:tab>
+
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onStudentFilterChange : function(component, event, helper) {
+        var instructorId = event.getParam('instructorId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.selectedCourseDeliveryId', courseDeliveryId);
+        helper.queryStudents(component, helper, instructorId, courseDeliveryId);
+    },
+    
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        component.set('v.selectedContactId',contactId);
+        helper.broadcastStudentSelected(component);
+        
+        component.find('datagrid').setSelection(contactId);
+    },
+    
+    onDataGridRowClick: function(component,event,helper) {
+        component.set('v.selectedContactId', event.getParam('pk'));
+        helper.broadcastStudentSelected(component);        
+    }
+})
+
+<!-- DataGrid.cmp -->
+<aura:component >
+    
+    <aura:attribute name="cols" type="Object[]" access="PRIVATE" description="The grid columns."/>  
+    <aura:attribute name="rows" type="Object[]" access="PRIVATE" description="The rows"/>  
+    <aura:attribute name="data" type="Object[]" access="public" description="The grid row data."/>  
+    <aura:attribute name="pkField" type="String" access="public" required="true"
+                    description="Primary key field in each data row"/>  
+    
+    <aura:method name="setSelection" action="{!c.setSelection}" access="PUBLIC"
+                 description="Set selected row, by ID">
+        <aura:attribute name="Id" type="String" default="" />
+    </aura:method>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.data}" action="{!c.doInit}"/>
+    
+    <c:DataGridTable rows="{!v.rows}" cols="{!v.cols}" aura:Id="datagridtable" />
+    
+</aura:component>
+
+<!-- DataGridController.js -->
+({
+    doInit : function(component, event, helper) {
+        helper.onInit(component);
+    },
+    
+    setSelection : function(component,event,helper) {
+        component.find('datagridtable').setSelection(event.getParam('arguments').Id);
+    }
+})

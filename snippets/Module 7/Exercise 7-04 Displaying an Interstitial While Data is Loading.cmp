@@ -1,0 +1,214 @@
+<!--
+
+Define two custom events that you will trigger from the helper.callServer() method to indicate whether remote data requests are in progress. You'll listen for these events in the root component of your application and display or hide a <lightning:spinner> component as appropriate. 
+
+Tasks:
+1. Define the markup.
+2. Show/hide the interstitial.
+
+-->
+
+<!-- NEW loading.evt 
+
+Description: Data is loading
+
+-->
+<aura:event type="COMPONENT" description="Data is loading" />
+
+<!-- NEW doneloading.evt 
+
+Description: Data is finished loading
+
+-->
+<aura:event type="COMPONENT" description="Data is finished loading" />
+
+<!-- AwInstructors.cmp -->
+<aura:component extends="c:Base" implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+
+    <aura:attribute name="viewMode" type="String" access="private" default="students"/>
+    <aura:attribute name="certificationId" type="Id" access="private" />
+    <aura:attribute name="certificationLabel" type="String" access="private" />
+    
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="onnotification" event="c:Notification" action="{!c.onNotification}" />
+    <aura:handler name="loading" event="c:loading" action="{!c.spinnerShow}"/>
+    <aura:handler name="doneloading" event="c:doneloading" action="{!c.spinnerHide}"/>
+
+    <div aura:id="modalspinner" class="slds-align_absolute-center slds-hide">   
+        <lightning:spinner variant="brand" size="large" />
+    </div>
+
+    <lightning:layout horizontalAlign="space" multipleRows="true">
+        
+        <lightning:layoutItem padding="around-small" largeDeviceSize="2" mediumDeviceSize="3" smallDeviceSize="12"  size="12">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+        
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem flexibility="auto" largeDeviceSize="7" mediumDeviceSize="5" smallDeviceSize="12" size="6" padding="around-small">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto" largeDeviceSize="3" mediumDeviceSize="4" smallDeviceSize="12" size="4" padding="around-small">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                <lightning:layoutItem largeDeviceSize="10" mediumDeviceSize="9" smallDeviceSize="12"  padding="around-small" size="10">             
+                    <aura:if isTrue="{!v.viewMode == 'tripreports'}">
+                        
+                        <c:TripReports />   
+                        
+                        <aura:set attribute="else">
+                            
+                            <c:CertificationStudentList label="{!v.certificationLabel}" 
+                                                        certificationId="{!v.certificationId}" />
+                            
+                        </aura:set>
+                    </aura:if>
+                </lightning:layoutItem>
+            </aura:set>
+            
+        </aura:if>     
+    </lightning:layout>   
+    
+</aura:component>
+
+<!-- AwInstructorsController.js -->
+({
+    onNavSelect: function(component,event,helper) {
+        var selectionName = event.getParam('name');
+        if (selectionName == 'students') {
+            component.set('v.viewMode','students');
+        } else if (selectionName == 'tripreports') {
+            component.set('v.viewMode','tripreports');
+        } else {
+            component.set('v.viewMode','certifications');
+            var key = selectionName.split(',');
+            component.set('v.certificationId',key[0]);
+            component.set('v.certificationLabel',key[1]);
+        }
+    },
+    
+    doInit: function(component,event,helper) {
+        helper.showToast(component,"Welcome","Don't forget to check back here for updated class schedules and assignments");  
+    },
+    
+    onNotification: function(component,event,helper) {
+        var notifService = component.find('notifLib');
+        var config = event.getParam('config');
+        if (event.getParam('type') == 'toast') {
+            notifService.showToast(config);
+        } else { 
+            // notification
+            notifService.showNotice(config);
+        }
+    },
+    
+    spinnerShow : function (component, event, helper) {
+        var m = component.find('modalspinner');
+        $A.util.removeClass(m, "slds-hide");
+    },
+    
+    spinnerHide : function (component, event, helper) {
+        var m = component.find('modalspinner');
+        $A.util.addClass(m, "slds-hide");
+    }    
+})
+
+<!-- Base.cmp -->
+<aura:component abstract="true">
+    
+    <aura:registerEvent name="onnotification" type="c:Notification" />
+    <aura:registerEvent name="loading" type="c:loading"/>
+    <aura:registerEvent name="doneloading" type="c:doneloading"/>
+    
+    {!v.body}
+    
+</aura:component>
+
+<!-- BaseHelper.js -->
+({
+    callServer : function(component,method,callback,params) {
+        var compEvent = component.getEvent("loading");
+        compEvent.fire();
+
+        var action = component.get(method);
+        if (params) {
+            action.setParams(params);
+        }
+        
+        action.setCallback(this,function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") { 
+                // pass returned value to callback function
+                callback.call(this,response.getReturnValue());   
+            } else if (state === "ERROR") {
+                // generic error handler
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error" + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown Error");
+                }
+            }
+            
+            var compEvent = component.getEvent("doneloading");
+            compEvent.fire();
+        });
+        
+        $A.enqueueAction(action);
+    },
+    
+    isLightningExperience : function() {
+        var toast = $A.get("e.force:showToast");
+        if (toast){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    showNotification : function(component, header, title, message, variant, closeCallback) {
+        
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'notification',
+                config: {
+                    header: header,
+                    title: title,
+                    message: message,
+                    variant: variant,
+                    closeCallback: closeCallback
+                }
+            });
+            compEvent.fire();
+        }
+    },
+    
+    showToast : function(component, title, message, messageData, variant, mode) {
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'toast',
+                config: {
+                    title: title,
+                    message: message,
+                    messageData: messageData,
+                    variant: variant,
+                    mode: mode
+                }
+            });
+            compEvent.fire();
+        }
+    }
+})

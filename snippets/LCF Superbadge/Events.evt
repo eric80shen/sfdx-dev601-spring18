@@ -1,0 +1,25 @@
+<!-- BoatSelect.evt -->
+<aura:event type="COMPONENT" description="Event template">
+    <aura:attribute name="boatId" type="Id" />
+</aura:event>
+
+<!-- FormSubmit.evt -->
+<aura:event type="COMPONENT" description="Submit form">
+    <aura:attribute name="formData" type="Object" />
+</aura:event>
+
+<!-- BoatSelected.evt -->
+<aura:event type="APPLICATION" description="Event template">
+    <aura:attribute name="boat" type="Boat__c" />
+</aura:event>
+
+<!-- BoatReviewAdded.evt -->
+<aura:event type="COMPONENT" description="Event template" />
+
+<!-- PlotMapMarker.evt -->
+<aura:event type="APPLICATION" description="Event template" >
+    <aura:attribute name="sObjectId" type="String" />
+    <aura:attribute name="lat" type="String" />
+    <aura:attribute name="long" type="String" />
+    <aura:attribute name="label" type="String" />
+</aura:event>

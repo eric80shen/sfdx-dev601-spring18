@@ -1,0 +1,119 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <aura:attribute name="mydata" type="Object[]"/>
+    <aura:attribute name="mycolumns" type="List"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:datatable data="{!v.mydata}" 
+                         columns="{!v.mycolumns}" 
+                         keyField="id"
+                         onrowselection="{!c.getSelectedName}"
+                         onsort="{!c.updateColumnSorting}"
+                         aura:id="datatable" />
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    doInit : function(component, event, helper) {
+        component.set('v.mycolumns', [
+            {
+                label: 'Opportunity name', 
+                fieldName: 'opportunityName', 
+                type: 'text',
+                sortable: 'true'
+            },
+            {
+                label: 'Confidence', 
+                fieldName: 'confidence', type: 'percent'
+            },
+            {
+                label: 'Amount', 
+                fieldName: 'amount', type: 'currency', 
+                typeAttributes: { currencyCode: 'EUR'}
+            },
+            {
+                label: 'Contact Email', 
+                fieldName: 'contact',   type: 'email'
+            },
+            {
+                label: 'Contact Phone', 
+                fieldName: 'phone', type: 'phone'
+            }
+        ]);
+        
+        component.set('v.mydata', [
+            {
+                id: 'a',
+                opportunityName: 'Fig Leaf Software',
+                confidence: 0.2,
+                amount: 25000,
+                contact: 'sdrucker@figleaf.com',
+                phone: '2024158483'
+            },
+            {
+                id: 'c',
+                opportunityName: 'Salesforce',
+                confidence: 0.90,
+                amount: 90000,
+                contact: 'training@salesforce.com',
+                phone: '2352235999'
+            },
+            {
+                id: 'b',
+                opportunityName: 'Quip',
+                confidence: 0.78,
+                amount: 740000,
+                contact: 'quipy@quip.com',
+                phone: '2352235235'
+            }            
+        ]);
+    },
+    
+    updateColumnSorting : function(component, event, helper) {
+        var fieldName = event.getParam('fieldName');
+        var sortDirection = event.getParam('sortDirection');
+        
+        // Assign the latest attribute with the sorted column fieldName and sorted direction
+        var cmp = component.find('datatable');
+        cmp.set("v.sortedBy", fieldName);
+        cmp.set("v.sortedDirection", sortDirection);
+        
+        helper.sortData(component, fieldName, sortDirection);
+    },
+    
+    getSelectedName : function(component, event, helper) {
+        var selectedRows = event.getParam('selectedRows');
+  
+        // Display that fieldName of the selected rows
+        for (var i = 0; i < selectedRows.length; i++){
+            alert("You selected: " + selectedRows[i].opportunityName);
+        } 
+    }
+})
+
+<!-- TestCmpHelper.js -->
+({
+    sortData: function (component, fieldName, sortDirection) {
+        var data = component.get("v.mydata");
+        var reverse = sortDirection !== 'asc';
+        
+        // Sorts the rows based on the column header that's clicked
+        data.sort(this.sortBy(fieldName, reverse))
+        component.set("v.mydata", data);
+    },
+    
+    sortBy: function (field, reverse, primer) {
+        var key = primer ?
+            function(x) {return primer(x[field])} :
+            function(x) {return x[field]};
+        
+        // Checks if the two rows should switch places
+        reverse = !reverse ? 1 : -1;
+        return function (a, b) {
+            return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+        }
+    }
+})

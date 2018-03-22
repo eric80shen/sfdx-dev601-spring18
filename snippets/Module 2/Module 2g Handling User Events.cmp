@@ -1,0 +1,92 @@
+<!--TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <aura:attribute name="message" type="String" default="Click Me!" />
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Handling user events</strong></p>
+        <div onclick="{!c.handleClick}">{! v.message }</div>
+        <div aura:id="mouseover" onmouseover="{!c.mouseOverMe}">Mouse Over Me</div>
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Finding components by ID</strong></p>
+        <div onclick="{!c.handleClick1}"> Click Me </div>
+        <span aura:id="response" title="Boo">Boo Hoo!</span>
+        <br/><input aura:id="button" type="button" value="HTML Button" onclick="{!c.handleClick2}"/>
+    </div>
+    
+    <aura:attribute name="likeId" type="String" />
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Assigning handlers with conditional expressions</strong></p>
+        <div onclick="{!(v.likeId == null) ? c.likeIt : c.unlikeIt}">
+            {!(v.likeId == null) ? 'Like It' : 'Unlike It' }
+        </div>
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Getting and setting component attribute values</strong></p>
+        <ui:button aura:id="button1" label="Press Me!" press="{!c.handleClick3}"/>
+        <br/>{!v.message} <!-- This is automatically refreshed when data changes -->
+        <br/>{#v.message} <!-- This is not automatically refreshed when data changes -->
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Hiding and showing components</strong></p>
+        <div onclick="{! c.clickMe1 }">Click Me</div>
+        <div aura:id="response1">Now you see me!</div>
+    </div>
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    handleClick : function(component, event, helper) {
+        var msg = component.get("v.message");
+        alert(msg);
+    },
+    handleClick1 : function(component, event, helper) {
+        var el = component.find("response");    // Lightning component
+        var domEl = el.getElement();    // DOM element
+        alert("Found a " + domEl.tagName + " tag, title is " + domEl.title + " innerHTML is " + domEl.innerHTML);
+        //alert("innerHTML is " + domEl.innerHTML);
+    },
+    handleClick2 : function(component, event) {
+        var el = component.find("button");
+        var domEl = el.getElement();
+        //alert(domEl.value);
+
+        // or
+        alert(event.type + ' event on ' + event.target.value);
+    },
+    likeIt : function(component, event, helper) {
+        component.set("v.likeId", 'liked');
+    },
+    unlikeIt: function(component, event, helper) {
+        component.set("v.likeId", null);
+    },
+    handleClick3 : function(component, event) {
+        var msg = component.get("v.message");
+        console.log("Value of message attribute: " + msg);
+        
+        //var btn = component.find("button1"); // Use the aura:id to find the button component
+        //console.log("Label of button component: " + btn.get("v.label"));
+        //component.set("v.message", btn.get("v.label"))
+        
+        // OR
+        
+        var target = event.getSource(); // Use the event (i.e. the click) to find the button component
+        alert("ID of component triggering event: " + target.getLocalId());
+        component.set("v.message", target.get("v.label"));
+    },
+    clickMe : function(component, event, helper) {
+        // add some crazy magic here!
+        alert("ouch!");
+    },
+    mouseOverMe : function(component, event, helper) {
+        alert(component.find("mouseover").getElement().innerHTML);
+    },
+    clickMe1 : function(component, event, helper) {
+        var el = component.find('response1'); 
+        $A.util.toggleClass(el, 'slds-hide');
+    }    
+})

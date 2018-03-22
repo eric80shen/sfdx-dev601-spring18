@@ -1,0 +1,192 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="firstName" type="String" default="Steve"/>
+    <aura:attribute name="lastName" type="String" default="Drucker"/>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Defining and Manipulating Component Attributes</strong></p>
+        Hello, {! v.firstName + ' ' + v.lastName } <!-- Outputs Hello, Steve Drucker -->
+    </div>
+
+    <aura:attribute name="colorPalette" type="List" default="red,green,blue" description="List: An ordered collection of items"/>
+    <aura:attribute name="sectionLabels" type="Map" default="{ 2: 'label2', 4: 'label4' }" description="Map: A collection of maps key/value pairs"/>
+    <aura:attribute name="collection" type="Set" default="1,2,3" description="Set: A collection that contains no duplicate elements"/>
+    <aura:attribute name="myArray" type="String[]" default="one,two,three" description="Array: An ordered collection of items"/>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Collection data types</strong></p>
+        <strong>List: </strong> {! v.colorPalette[0] },{! v.colorPalette[1] },{! v.colorPalette[2] }
+        <br/>
+        <strong>Map: </strong> {! v.sectionLabels[2] },{! v.sectionLabels[4] }
+        <br/>
+        <strong>Set: </strong> {! v.collection[0] },{! v.collection[1] },{! v.collection[2] }
+        <br/>
+        <strong>Array: </strong> {! v.myArray[0] },{! v.myArray[1] },{! v.myArray[2] }
+    </div>
+    <!-- Output looks like this:
+        List: red,green,blue
+        Map: label2,label4
+        Set: 1,2,3
+        Array: one,two,three
+
+    Can't do this if map uses 'a' and 'b' for keys as syntax checker expects a numeric in []. Need to use
+    JavaScript to get the values in that case
+    -->
+
+    <aura:attribute name="num1" type="Decimal" default="2"/>
+    <aura:attribute name="num2" type="Decimal" default="4"/>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using numeric literals</strong></p>
+        <div>2 + {# v.num1 } = {# 2 + v.num1 }</div>
+        <div>2000 = {# 2e3 } </div>
+        <div>2 + null = {# 2 + null }</div>
+        <!-- Outputs:
+            2 + 2 = 4
+            2000 = 2000
+            2 + null = 2
+        -->    
+    </div>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using arithmetic operators</strong></p>
+        <div class="expr">{#v.num1} + {#v.num2} = <span class="result">{#v.num1 + v.num2}</span> </div>
+        <div class="expr">{#v.num1} - {#v.num2} = <span class="result">{#v.num1 - v.num2}</span> </div>
+        <div class="expr">{#v.num1} * {#v.num2} = <span class="result">{#v.num1 * v.num2}</span> </div>
+        <div class="expr">{#v.num1} / {#v.num2} = <span class="result">{#v.num1 / v.num2}</span> </div>
+        <div class="expr">{#v.num1} % {#v.num2} = <span class="result">{#v.num1 % v.num2}</span> </div>
+        <div class="expr">Negative {#v.num1}    = <span class="result">{#-v.num1}</span> </div>
+        <!-- Outputs:
+            2 + 4 = 6
+            2 - 4 = -2
+            2 * 4 = 8
+            2 / 4 = 0.5
+            2 % 4 = 2
+            Negative 2 = -2
+        -->         
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using math functions</strong></p>
+        <div>2 + 2 = {# add(2,2) }</div>
+        <div>2 - 2 = {# sub(2,2) }</div>
+        <div>abs(-5) = {# abs(-5) }</div>
+        <!-- Outputs:
+            2 + 2 = 4
+            2 - 2 = 0
+            abs(-5) = 5
+        -->
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using string literals</strong></p>
+        <!-- 
+         You can encode unicode characters as '\u####' where # represents a hexadecimal digit. 
+         All unicode characters require 4 digits.
+        
+         The following markup output as shown below:
+        
+         Copyright © 2016. Salesforce.com. All Rights Reserved.
+        -->
+        <div class="copyright">
+            Copyright {# '\u00A9'} 2016. Salesforce.com. All Rights Reserved.
+        </div>
+    </div>
+    
+    <aura:attribute name="address" type="string" default="sconnock@salesforce.com"/>
+    <aura:attribute name="label" type="string" default="Send to Simon"/>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Implementing string concatenation</strong></p>
+        <!--
+         Use the + operator on string values to join them together
+         
+         Note that if using an expression as part of a tag attribute the 
+         entire attribute has to be an expression so cannot do this
+        
+         <a href="mailto:{!v.address}">
+          {!v.label}
+         </a> 
+        
+         won’t even save
+        -->
+        <a href="{# 'mailto:' + v.address }">
+            {# v.label }
+        </a>
+        <br/>
+        <a href="{#concat('mailto:',v.address)}">
+            {# v.label }
+        </a>
+    </div>
+    
+    <aura:attribute name="location" type="string" default="/active"/>
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using the Ternary Operator</strong></p>
+        <a class="{! v.location == '/active' ? 'slds-text-heading--large' : 'slds-text-heading--small'}" href="#/active">
+            Active
+        </a>
+    </div>
+    
+    <aura:attribute name="edit" type="Boolean" default="true"/>
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using aura:if</strong></p>
+        <aura:if isTrue="{! v.edit }">
+            <ui:button label="Edit"/>
+            <aura:set attribute="else">
+                You can’t edit this.
+            </aura:set>
+        </aura:if>
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using conditional operators</strong></p>
+        <aura:if isTrue="{# v.num2 == 0 }">
+            You can't divide by zero!
+            <aura:set attribute="else">
+                {#v.num1} / {#v.num2} = {# v.num1 / v.num2}
+            </aura:set>
+        </aura:if>
+    </div>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using logical operators</strong></p>    
+        <aura:if isTrue="{! v.num1 >= 0 &amp;&amp; v.num2 >= 0}">
+            <aura:if isTrue="{! v.num2 == 0 }">
+                You can't divide by zero!
+                <aura:set attribute="else">
+                    {!v.num1} / {!v.num2} = {! v.num1 / v.num2}
+                </aura:set>
+            </aura:if>
+            <aura:set attribute="else">
+                Error - both numbers must be positive values.
+            </aura:set>
+        </aura:if>
+    </div>
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Using the and() function</strong></p>   
+        <aura:if isTrue="{! and(v.num1 >= 0,v.num2 >= 0)}">
+            <aura:if isTrue="{! v.num2 == 0 }">
+                You can't divide by zero!
+                <aura:set attribute="else">
+                    {!v.num1} / {!v.num2} = {! v.num1 / v.num2}
+                </aura:set>
+            </aura:if>
+            <aura:set attribute="else">
+                Error - both numbers must be positive values.
+            </aura:set>
+        </aura:if>
+    </div>
+    
+    <aura:attribute name="myNames" type="String[]" default="['Steve','Dave','Joe','Jyoti']" />
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Looping through arrays and objects</strong></p>   
+        <ul>
+            <aura:iteration items="{!v.myNames}" var="thisName">
+                <li>{!thisName}</li>
+            </aura:iteration>
+        </ul>
+        
+    </div>   
+    
+</aura:component>

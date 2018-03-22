@@ -1,0 +1,62 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <!-- Insert valid record IDs -->
+    <aura:attribute name="selectedContactId" type="Id" default="0031N00001MyP6hQAF" />
+    <aura:attribute name="contactRecordTypeId" type="Id" default="0121N000001fC3nQAE" />
+    <aura:attribute name="selectedTripReportId" type="Id" default="a071o000019QpLGAA0" />
+    
+    <lightning:card title="Update Contact Record">
+        <div class="slds-p-bottom_large slds-p-left_large" style="width:500px">
+            <lightning:recordEditForm aura:id="contactEditForm"
+                                      recordId="{!v.selectedContactId}"
+                                      recordTypeId="{!v.contactRecordTypeId}"
+                                      objectApiName="Contact">
+                
+                <!-- Support error handling -->
+                <lightning:messages />
+                
+                <!-- Editable fields -->
+                <lightning:inputField fieldName="Name" />
+                <lightning:inputField fieldName="LeadSource" />
+                <lightning:inputField fieldName="AccountId" /> <!-- LEX only - seems to have issues! -->
+                <!--<lightning:outputField fieldName="AccountId" />-->
+                
+                <!-- Support record edit -->
+                <lightning:button aura:id="submitContact" 
+                                  type="submit" 
+                                  label="Update Contact record" 
+                                  class="slds-m-top_medium" />
+                
+            </lightning:recordEditForm>
+        </div>    
+    </lightning:card>
+    
+    <lightning:card title="Update Trip Report Record">
+        <div class="slds-p-bottom_large slds-p-left_large" style="width:500px">
+            <lightning:recordEditForm aura:id="tripReportEditForm"
+                                      recordId="{!v.selectedTripReportId}"
+                                      objectApiName="TripReport__c">
+                
+                <!-- Support error handling -->
+                <lightning:messages />
+                
+                <!-- Editable fields -->
+                <lightning:inputField fieldName="Name" />
+                <lightning:inputField fieldName="Date__c" />
+                <lightning:inputField fieldName="ReviewType__c" />
+                <lightning:inputField fieldName="Instructor__c" /> <!-- LEX only -->
+                <!--<lightning:outputField fieldName="Instructor__c" />-->
+                <lightning:inputField fieldName="Review__c" />
+                
+                <!-- Support record edit -->
+                <lightning:button aura:id="submitTripReport" 
+                                  type="submit" 
+                                  label="Update Trip Report record" 
+                                  class="slds-m-top_medium" />
+                
+            </lightning:recordEditForm>
+        </div>
+    </lightning:card>
+    
+</aura:component>

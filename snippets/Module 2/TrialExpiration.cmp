@@ -1,0 +1,70 @@
+<!-- TrialExpirationController.apxc -->
+public without sharing class TrialExpirationController {
+    
+    @AuraEnabled
+    public static Integer getExpirationDaysLeft () {
+        
+        Integer daysLeft;
+        
+        try {
+            Organization org = [SELECT TrialExpirationDate FROM Organization];
+            DateTime expDate = org.TrialExpirationDate;
+            
+            daysLeft = Date.today().daysBetween(date.valueof(expDate)) - 1;
+        }
+        catch (Exception e) {
+            throw new AuraHandledException('Unable to get org expiration date');   
+        }
+
+        return daysLeft;        
+    }
+}
+
+<!-- TrialExpirationController_Test -->
+@isTest
+private class TrialExpirationController_Test {
+    
+    private testmethod static void testExpDate () {
+        
+        Integer daysLeft = TrialExpirationController.getExpirationDaysLeft();
+        system.assertNotEquals(null, daysLeft, 'ERROR: Returned null days left');
+    }
+}
+
+<!-- TrialExpiration.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                controller="TrialExpirationController">
+
+    <aura:attribute name="daysLeft" type="String" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:card title="{!v.daysLeft}" iconName="custom:custom25" />
+    
+</aura:component>
+
+<!-- TrialExpirationController.js -->
+({
+    doInit : function(component) {
+        
+        var action = component.get("c.getExpirationDaysLeft");
+        
+        action.setStorable();
+
+        action.setCallback(this, function(response) {
+
+            var state = response.getState();
+
+            if (component.isValid() && state === "SUCCESS") {
+                
+                var expDaysLeft = response.getReturnValue();
+                component.set("v.daysLeft", "This trial org will expire in " + expDaysLeft + " days");
+                
+            } else if (component.isValid() && state === "ERROR") {
+                component.set("v.daysLeft", response.getError()[0].message);
+            }
+        });
+
+        $A.enqueueAction(action);
+    }
+})

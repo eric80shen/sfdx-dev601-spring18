@@ -1,0 +1,85 @@
+<!-- 
+
+Add custom content to the automatically generated documentation for your component.
+
+Tasks
+
+During this exercise you will:
+1.	Review the automatically generated documentation
+2.	Provide a text description for the StudentTile component
+3.	Provide a description for the StudentTile component's attributes.
+
+-->
+
+<!-- NEW ExampleStudentTile.cmp -->
+<aura:component >
+    
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <div style="position:relative;width:128px">
+        <c:StudentTile student="{ sobjectType:'Contact', 
+                                Name:'your name here',
+                                Id : '003B0000009VnyiIAC',
+                                PhotoUrl: '/services/images/photo/003B0000009VnYcIAK'}"/>
+    </div>
+    
+</aura:component>
+
+<!-- ExampleStudentTileController.js -->
+({
+    onStudentSelected : function(component, event, helper) {
+        alert("You selected contact " + event.getParam('contactId'));
+    }
+})
+
+<!-- StudentTile.cmp -->
+<aura:component description="Display photo and name of student as clickable button" >
+    
+    <aura:attribute name="student" type="Contact" access="public" 
+                    default="{'sobjectType' : 'Contact', 
+                              'Name' : 'Joe Flowers',
+                               PhotoUrl : '/services/images/photo/003B0000009VnYcIAK'}"
+                    description="Contact object with fields sobjectType, Id, Name, PhotoUrl" />
+    <aura:attribute name="selected" 
+                    type="boolean" 
+                    access="public" 
+                    default="false" 
+                    description="Set to true to persist blue border" />
+    
+    <aura:registerEvent name="onStudentSelected" type="c:StudentSelected" />
+    
+    <lightning:button onclick="{!c.onStudentClick}" 
+                      variant="neutral" 
+                      class="{! v.selected ? 'tile selected' : 'tile' }">
+        
+        <div class="innertile" style="{# 'background-image:url(' + v.student.PhotoUrl + ')' }" >
+            <div class="lower-third">
+                <h1 class="truncate">{!v.student.Name}</h1>
+            </div>
+        </div>
+        
+    </lightning:button>
+	
+</aura:component>
+
+<!-- StudentTile.auradoc -->
+<aura:documentation>
+    <aura:description>
+        <p>This component renders a Contact standard object as a clickable button.</p>
+        <p>
+            Contact fields used include:
+            <ul>
+                <li>Name</li>
+                <li>PhotoUrl</li>
+            </ul>
+        </p>
+        <p>Note that social contacts must be enabled in your org for the PhotoUrl field to be available.</p>
+        
+        <p>When the button is clicked, an application event named c:StudentSelected is raised, passing the contact's Id.</p>
+    </aura:description>
+
+    <aura:example name="StudentTileExample1" ref="c:ExampleStudentTile" label="Simple Instantiation">
+        Displays a contact photo and name, fires an application event when clicked.
+    </aura:example>
+
+</aura:documentation>

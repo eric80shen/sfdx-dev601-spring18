@@ -1,0 +1,365 @@
+<!--
+
+Goals:
+Modify the DataGrid component to fire a logical event 
+When a user double-clicks on a grid row, it triggers the display of a modal dialog box containing a force:recordEdit component that outputs a record editing interface.
+
+Tasks:
+1. Define a custom event.
+2. Register the Event
+3. Create the Body and Footer Components to be deployed in the modal.
+4. Dynamically instantiate the modal components.
+
+-->
+
+<!-- NEW DataGridRowDblClick.evt
+
+Description: Fired by the DataGridTable component when a user double-clicks anywhere on a data row
+
+-->
+<aura:event type="COMPONENT">
+    <aura:attribute name="pk" type="String"/>
+    <aura:attribute name="rec" type="Object"/>
+</aura:event>
+
+<!-- DataGridTable.cmp -->
+<aura:component >
+    <aura:attribute name="cols" type="Object[]" access="GLOBAL" description="The grid columns."/> 
+    <aura:attribute name="rows" type="Object[]" access="GLOBAL" description="The grid row data."/>
+    <aura:attribute name="selectedRow" type="Object" access="GLOBAL" />
+
+    <aura:method name="setSelection" action="{!c.setSelection}" access="PUBLIC"
+                 description="Set selected row, by ID">
+        <aura:attribute name="Id" type="String" default="" />
+    </aura:method>
+
+    <aura:registerEvent name="rowclick" type="c:DataGridRowClick"/>
+    <aura:registerEvent name="rowdblclick" type="c:DataGridRowDblClick"/>
+
+    <table class="slds-table slds-table--bordered slds-max-medium-table--stacked">
+        <thead>
+            <tr class="slds-text-heading--label">
+                <aura:iteration items="{!v.cols}" var="col" indexVar="idx">
+                    <th scope="col" class="{!col.class}"><span class="slds-truncate">{!col.label}</span></th>  
+                </aura:iteration>
+            </tr>
+        </thead>
+        <tbody >
+            <aura:iteration items="{!v.rows}" var="row" indexVar="idx">
+                <tr aura:Id="datarow" class="slds-hint-parent" data-row="{!idx}" data-pk="{!row.pk}" 
+                    onclick="{!c.onRowClick}" ondblclick="{!c.onRowDblClick}">
+                    <aura:iteration items="{!row.data}" var="colData">
+                        <td class="{!colData.class}"  data-label="{!colData.label}">
+                            <span class="slds-truncate">
+                                <aura:if isTrue="{!colData.type == 'phone'}">
+                                    <lightning:formattedPhone value="{!colData.value}" />
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!colData.type == 'email'}">
+                                            <lightning:formattedEmail value="{!colData.value}" />
+                                            <aura:set attribute="else">
+                                                {!colData.value}
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </td>
+                    </aura:iteration>
+                </tr>
+            </aura:iteration>
+        </tbody>
+    </table>
+    
+</aura:component>
+
+<!-- DataGridTableController.js -->
+({
+	onRowClick : function(component, event, helper) {
+		var target = event.currentTarget;
+        helper.setSelectedRow(component,target);
+        
+        var compEvent = component.getEvent("rowclick");
+        compEvent.setParams({
+            pk : target.getAttribute('data-pk'), 
+            domEl: target
+        });
+        compEvent.fire();
+    },
+    
+    setSelection: function(component,event,helper) {
+        var params = event.getParam('arguments');
+        var pk = params.Id;
+        var targets = component.find("datarow");
+        for (var i=0; i<targets.length; i++) {
+            if (targets[i].getElement().getAttribute(
+                'data-pk') == pk) {
+                helper.setSelectedRow(component,targets[i]);
+                break;
+            }
+        } 
+    },
+    
+    onRowDblClick : function(component, event, helper) {
+        
+        var target = event.currentTarget;
+        var pk = target.getAttribute('data-pk');
+        var data = component.get('v.rows');
+        
+        // convert data from array to object
+        var rec = {};
+        for (var i=0; i<data.length; i++) {
+            if (data[i].pk == pk) {
+                var dataFields = data[i].data;
+                for (var j=0; j<dataFields.length; j++ ) {
+                    rec[dataFields[j].label] = dataFields[j].value;
+                }
+                break;
+            }             
+        }
+        
+        var compEvent = component.getEvent("rowdblclick");
+        compEvent.setParams({
+            pk : target.getAttribute('data-pk'),
+            rec: rec
+        });
+        compEvent.fire();
+    }    
+})
+
+<!-- NEW EditSObject.cmp -->
+<aura:component>
+    
+    <aura:attribute type="Id" name="Id" required="true" />
+    
+    <force:recordEdit aura:id="edit" recordId="{!v.Id}"/>
+    
+</aura:component>
+
+<!-- NEW EditSObjectFooter.cmp -->
+<aura:component>
+    
+   <lightning:overlayLibrary aura:id="overlayLib"/>
+   
+   <lightning:button name="cancel" label="Cancel" onclick="{!c.onCancel}"/>
+    
+   <lightning:button name="save" label="Save" variant="brand" onclick="{!c.onSave}"/>
+
+</aura:component>
+
+<!-- EditSObjectFooterController.js -->
+({
+    onCancel : function(component, event, helper) {
+        component.find("overlayLib").notifyClose(); // Fires application event
+    }
+})
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    <aura:attribute name="selectedCourseDeliveryId" type="String" access="private" default="" />
+    <aura:attribute name="selectedContactId" type="String" access="private" default="" />
+    
+    <aura:registerEvent name="broadcastStudentSelected" type="c:AwInstructorsStudentSelected"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}" />
+	<aura:handler name="rowclick" event="c:DataGridRowClick" action="{!c.onDataGridRowClick}"/>
+    <aura:handler name="rowdblclick" event="c:DataGridRowDblClick" action="{!c.onContactEdit}" />
+
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <div class="slds-m-bottom_small">
+        <!-- Following syntax saves having to write a handler statement -->
+	    <c:StudentBrowserForm onStudentFilterChange="{!c.onStudentFilterChange}" />
+    </div>
+    
+    <lightning:tabset variant="scoped">
+        
+        <lightning:tab label="Grid">
+            <ui:scrollerWrapper class="scrollerSize">
+                <c:DataGrid data="{!v.studentList}" pkField="Id" aura:id="datagrid">    
+                    <c:DataGridColumn fieldName="Name" label="Name" />
+                    <c:DataGridColumn fieldName="Title" label="Title" hidden="true" />
+                    <c:DataGridColumn fieldName="Phone" label="Phone" type="phone" />
+                    <c:DataGridColumn fieldName="Email" label="E-Mail" type="email" />
+                </c:DataGrid>
+            </ui:scrollerWrapper>
+        </lightning:tab>        
+        
+    	<lightning:tab label="Gallery">
+            <ui:scrollerWrapper class="scrollerSize">
+                <c:StudentTiles students="{!v.studentList}" 
+                                selectedStudentId="{!v.selectedContactId}"/>
+            </ui:scrollerWrapper>
+        </lightning:tab>
+
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onStudentFilterChange : function(component, event, helper) {
+        var instructorId = event.getParam('instructorId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.selectedCourseDeliveryId', courseDeliveryId);
+        helper.queryStudents(component, helper, instructorId, courseDeliveryId);
+    },
+    
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        component.set('v.selectedContactId',contactId);
+        helper.broadcastStudentSelected(component);
+        
+        component.find('datagrid').setSelection(contactId);
+    },
+    
+    onDataGridRowClick: function(component,event,helper) {
+        component.set('v.selectedContactId', event.getParam('pk'));
+        helper.broadcastStudentSelected(component);        
+    },
+    
+    onContactEdit : function(component,event,helper) {
+        var title = "Edit Contact - ";
+        var contactId = event.getParam('pk');
+        var rec = event.getParam('rec');
+        if (rec) {
+            title += rec.Name;
+        }
+        // insert code here
+        $A.createComponents([
+            ["c:EditSObject", {Id: contactId}],
+            ["c:EditSObjectFooter", {}]
+        ],
+        function(components, status) {
+            if (status === "SUCCESS") {
+                component.find('overlayLib').showCustomModal({
+                    header: title,
+                    body: components[0], 
+                    footer: components[1],
+                    showCloseButton: true,
+                    cssClass: "",
+                    closeCallback: function() {
+                        alert('You closed the alert!');
+  					}
+				});
+            }
+        });
+    }
+})
+
+<!-- Modified to get the Save to work -->
+<!-- EditSObject.cmp -->
+<aura:component >
+    
+    <aura:attribute type="Id" name="Id" required="true" />
+    
+    <!-- Added to get the Save to work -->
+    <aura:method name="saveRecord" action="{!c.doSave}" /> 
+    
+    <!-- Added to get the Save to work -->
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <force:recordEdit aura:id="edit" recordId="{!v.Id}"/>
+    
+</aura:component>
+
+<!-- EditSObjectController.js -->
+({
+    // Added to get the Save to work
+    doSave : function(component, event, helper) {
+        component.find("edit").get("e.recordSave").fire();
+        component.find("overlayLib").notifyClose();
+    }
+})
+
+<!-- EditSObjectFooter.cmp -->
+<aura:component >
+    
+    <!-- Added to get the Save to work -->
+    <aura:attribute name="modalBody" type="Aura.Component" />
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <lightning:button name="cancel" label="Cancel" onclick="{!c.onCancel}"/>
+    <lightning:button name="save" label="Save" variant="brand" onclick="{!c.onSave}"/>
+    
+</aura:component>
+
+<!-- EditSObjectFooterController.js -->
+({
+    onCancel : function(component, event, helper) {
+        component.find("overlayLib").notifyClose();
+    },
+    
+    // Added to get the Save to work
+    onSave : function(component, event, helper) {
+        var modalBodyCmp = component.get("v.modalBody");
+        modalBodyCmp.saveRecord();        
+    }
+})
+
+<!-- StudentBrowserController.js -->
+({
+    doInit : function(component, event, helper) {
+        helper.onInit(component, event, helper);
+    },
+    
+    onStudentFilterChange : function(component, event, helper) {
+        var instructorId = event.getParam('instructorId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.selectedCourseDeliveryId', courseDeliveryId);
+        helper.queryStudents(component, helper, instructorId, courseDeliveryId);
+    },
+    
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        component.set('v.selectedContactId',contactId);
+        helper.broadcastStudentSelected(component);
+        
+        component.find('datagrid').setSelection(contactId);
+    },
+    
+    onDataGridRowClick: function(component,event,helper) {
+        component.set('v.selectedContactId', event.getParam('pk'));
+        helper.broadcastStudentSelected(component);        
+    },
+    
+    onContactEdit : function(component,event,helper) {
+        var title = "Edit Contact - ";
+        var contactId = event.getParam('pk');
+        var rec = event.getParam('rec');
+        if (rec) {
+            title += rec.Name;
+        }
+        // insert code here
+        $A.createComponents([
+            ["c:EditSObject", {Id: contactId}],
+            ["c:EditSObjectFooter", {}]
+        ],
+        function(components, status) {
+            if (status === "SUCCESS") {
+                var modalBody = components[0];              // Added to get the Save to work
+                var modalFooter = components[1];            // Added to get the Save to work
+                modalFooter.set('v.modalBody', modalBody);  // Added to get the Save to work            
+                component.find('overlayLib').showCustomModal({
+                    header: title,
+                    body: components[0], 
+                    footer: components[1],
+                    showCloseButton: true,
+                    cssClass: "",
+                    closeCallback: function() {
+                        alert('You closed the alert!');
+                    }
+                });
+            }
+        });
+    }
+})

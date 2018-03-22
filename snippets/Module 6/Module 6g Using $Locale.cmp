@@ -1,0 +1,227 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+
+    <aura:attribute name="localeText" type="String" default="country" access="public"/>
+    <aura:attribute name="someDateTime" type="DateTime" default="" access="public"/>
+    <aura:attribute name="localizedCurrency" type="String" default="" access="public" />
+    <aura:attribute name="localizedNumber" type="String" default="" access="public" />
+    <aura:attribute name="localizedPercent" type="String" default="" access="public" />
+    <aura:attribute name="localizedNumberFormat" type="String" default="" access="public" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <div style="margin: 10px;">
+        <table style="border: 1px solid black;">
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.country</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.country}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.currency</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.currency}</td>
+            </tr>     
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.currencyCode</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.currencyCode}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.currencyFormat</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.currencyFormat}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.dateFormat</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.dateFormat}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.timeFormat</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.timeFormat}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.decimal</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.decimal}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.grouping</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.grouping}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.language</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.language}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.langLocale</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.langLocale}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.percentFormat</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.percentFormat}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.timezone</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.timezone}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">$Locale.variant</td>
+                <td style="border: 1px solid black; padding: 5px;">{!$Locale.variant}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">German (default timezone)</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputDateTime value="2016-05-07T00:17:08.997Z" langLocale="de"/></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">German (German timezone)</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputDateTime value="2016-05-07T00:17:08.997Z" langLocale="de" timezone="Europe/Berlin" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">American (Pacific timezone)</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputDateTime value="2016-05-07T00:17:08.997Z" langLocale="us" timezone="America/Los Angeles" /></td>
+            </tr>         
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">American (Pacific timezone US date format)</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputDateTime value="2016-05-07T00:17:08.997Z" langLocale="us" timezone="America/Los Angeles" format="M-d-y" /></td>
+            </tr>   
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">Default (language and timezone)</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputDateTime value="2016-05-07T00:17:08.997Z" langLocale="{!$Locale.language}" timezone="{!$Locale.timezone}" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">Default number format</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputNumber value="10000.10" /></td>
+            </tr>         
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">"0,000.00" format</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputNumber value="10000.10" format="0,000.00" /></td>
+            </tr>  
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">".00" format</td>
+                <td style="border: 1px solid black; padding: 5px;"><ui:outputNumber value="10000.10" format=".00" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedDateTime</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedDateTime value="{!v.someDateTime}" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedDateTime year="numeric" month="short" day="numeric"  hour="2-digit" minute="2-digit" timeZoneName="short"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedDateTime value="{!v.someDateTime}" year="numeric" 
+                                     month="short" day="numeric"  hour="2-digit" minute="2-digit" timeZoneName="short" /></td>
+            </tr>             
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedNumber value="5000" style="currency"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedNumber value="5000" style="currency" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedNumber value="5000" style="currency" currencyCode="USD"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedNumber value="5000" style="currency" currencyCode="USD" currencyDisplayAs="code"/></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedNumber value="5000" style="currency" currencyCode="GBP" currencyDisplayAs="name"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedNumber value="5000" style="currency" currencyCode="GBP" currencyDisplayAs="name" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedNumber value="5000" style="currency" currencyCode="GBP" currencyDisplayAs="symbol"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedNumber value="5000" style="currency" currencyCode="GBP" currencyDisplayAs="symbol" /></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">lightning:formattedNumber value="0.5" style="percent"</td>
+                <td style="border: 1px solid black; padding: 5px;"><lightning:formattedNumber value="0.5" style="percent" /></td>
+            </tr>            
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">JavaScript localized currency</td>
+                <td style="border: 1px solid black; padding: 5px;">{!v.localizedCurrency}</td>
+            </tr>    
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">JavaScript localized number</td>
+                <td style="border: 1px solid black; padding: 5px;">{!v.localizedNumber}</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">JavaScript localized percent</td>
+                <td style="border: 1px solid black; padding: 5px;">{!v.localizedPercent}</td>
+            </tr>            
+        </table>
+        <br/>
+        JavaScript localized number format<br/>
+        {!v.localizedNumberFormat}<br/><br/>
+        <ui:inputText label="Enter locale parameter: " value="{!v.localeText}" />
+        <ui:button label="Check Device" press="{!c.checkDevice}" />
+    </div>
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    doInit : function(component, event, helper) {
+        var currentDateTime = Date.now();
+        component.set("v.someDateTime", currentDateTime);
+        
+        // returns $10,000.24
+        component.set("v.localizedCurrency",$A.localizationService.formatCurrency(10000.24));
+
+        // returns 10,000.24
+        component.set("v.localizedNumber",$A.localizationService.formatNumber(10000.24));
+        
+        // Returns 24%
+        component.set("v.localizedPercent",$A.localizationService.formatPercent(.24));
+
+        // Returns JavaScript object containing formatting
+        var f = $A.get("$Locale.numberFormat");
+        var nf = $A.localizationService.getNumberFormat(f);
+        component.set("v.localizedNumberFormat",JSON.stringify(nf));
+        //var num = 10000
+        //var formatted = nf.format(num); // Returns 10,000
+    },
+    checkDevice : function(component, event, helper) {
+        var localeText = "$Locale." + component.get("v.localeText");
+        alert("You are using " + $A.get(localeText));
+    }
+})
+
+<!-- Example output
+
+    $Locale.country         US
+    $Locale.currency        £
+    $Locale.currencyCode    GBP
+    $Locale.currencyFormat  ¤#,##0.00
+    $Locale.dateFormat      dd-MMM-yyyy
+    $Locale.timeFormat      HH:mm:ss
+    $Locale.decimal         .
+    $Locale.grouping        ,
+    $Locale.language        en
+    $Locale.langLocale      en_US
+    $Locale.percentFormat   #,##0%
+    $Locale.timezone        Europe/London
+    $Locale.variant 
+
+    German (default timezone)                   07-Mai-2016 01:17:08
+    German (German timezone)                    07-Mai-2016 02:17:08
+    American (Pacific timezone)                 07-May-2016 01:17:08
+    American (Pacific timezone US date format)  5-7-2016
+    Default (language and timezone)             07-May-2016 01:17:08
+
+    Default format      10,000.1
+    "0,000.00" format   10,000.10    
+    ".00" format        10000.10
+
+    JavaScript localized currency   £10,000.24
+    JavaScript localized number 10,000.24
+    JavaScript localized percent    24%
+    JavaScript localized number format
+    {"$originalFormat$":"#,##0.###",
+     "$symbols$":{
+        "decimalSeparator":".",
+        "groupingSeparator":",",
+        "currency":"£",
+        "currencyCode":"GBP",
+        "zeroDigit":"0"},
+      "$zeroCharCodeOffset$":0,
+      "$hasCurrency$":false,
+      "$multiplier$":0,
+      "$minDigits$":1,
+      "$groupingDigits$":3,
+      "$minFractionDigits$":0,
+      "$maxFractionDigits$":3,
+      "prefix":null,
+      "$suffix$":null,
+      "$hasNegativePattern$":false,
+      "$negativePrefix$":null,
+      "$negativeSuffix$":null}
+
+-->

@@ -1,0 +1,112 @@
+<!--
+
+Pull the list of certifications and dynamically generate navigation links
+
+Tasks:
+1. Create the Apex class to retrieve certifications.
+2. Create the Navigation Component
+3. Fetch the Certifications
+4. Dynamically Generate the Vertical Navigation
+5. Deploy the Component
+6. Modify the Layout
+
+-->
+
+<!-- NEW Apex Class -->
+public with sharing class AwInstructorsNavigation {
+    
+    @AuraEnabled
+    public static List<Certification__c> getCertifications() {
+        return [SELECT Name, Id, Number_of_Certified_Professionals__c 
+                FROM Certification__c
+                ORDER BY Name];
+    }
+}
+
+<!-- NEW AwInstructorsNavigation.cmp -->
+<aura:component controller="AwInstructorsNavigation" extends="c:Base">
+    
+    <aura:attribute name="certifications" type="Object[]" access="private" />
+    <aura:attribute name="onselect" type="Aura.Action" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:card title="Nav">
+        
+        <lightning:verticalNavigation selectedItem="students" onselect="{!v.onselect}">
+            
+            <lightning:verticalNavigationSection label="Browse">
+                <lightning:verticalNavigationItem label="Student Browser" name="students"/>
+            </lightning:verticalNavigationSection>
+            
+            <lightning:verticalNavigationSection label="Certification">  
+                <lightning:verticalNavigationOverflow >
+                    <aura:iteration items="{!v.certifications}" var="cert">
+                        <lightning:verticalNavigationItem label="{!cert.Name}" 
+                                                          name="{!cert.Id + ',' + cert.Name}" />                      
+                    </aura:iteration>           
+                </lightning:verticalNavigationOverflow>
+            </lightning:verticalNavigationSection>
+
+        </lightning:verticalNavigation>
+        
+    </lightning:card>
+    
+</aura:component>
+
+<!-- AwInstructorsNavigationController.js -->
+({
+    doInit : function(component, event, helper) {
+        helper.callServer(component,
+                          "c.getCertifications",
+                          function(response) {  
+                              component.set('v.certifications', response);
+                          }); 		
+    }
+})
+
+<!-- AwInstructors.cmp -->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="viewMode" type="String" default="students" access="private" />
+
+    <lightning:layout horizontalAlign="space">
+        
+        <lightning:layoutItem padding="around-small" size="2">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="6">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="4">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                
+                <lightning:layoutItem flexibility="auto" padding="around-small" size="10">
+                    Output Certifications here
+                </lightning:layoutItem>
+                
+            </aura:set>
+        </aura:if>
+        
+    </lightning:layout>
+
+</aura:component>
+
+<!-- AwInstructorsController.js -->
+({
+    onNavSelect : function(component, event, helper) {
+        var selectionName = event.getParam('name');
+        if (selectionName == 'students') {
+            component.set('v.viewMode','students');
+        } else {
+            component.set('v.viewMode','certifications');
+        }		
+    }
+})

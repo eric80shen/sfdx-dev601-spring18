@@ -1,0 +1,143 @@
+<!-- TestCmp.cmp add to a contact page or run from an app and supply a contact ID 
+
+Note file size limited by Apex to 1MB. Because we're Base64 encoding practical
+limit is 750KB
+
+-->
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" 
+                access="global" controller="TestCmpApexController">
+    
+    <aura:attribute name="files" type="Object[]"/>
+    <aura:attribute name="spinnerWaiting" type="Boolean" default="false"/>
+    <aura:attribute name="image" type="String" />
+    <aura:attribute name="recordId" type="Id" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.onGetImageUrl}" />
+    
+    <div>
+        <!-- Only adding this so can test from an app -->
+        <lightning:input type="text" 
+                         name="contactId" 
+                         label="Enter a Contact ID" 
+                         value="{!v.recordId}" /><br/>
+
+        <lightning:input aura:id="fileInput" 
+                         type="file" 
+                         name="file" 
+                         multiple="false" 
+                         accept="image/*;capture=camera" 
+                         files="{!v.files}" 
+                         onchange="{! c.onReadImage }"
+                         label="Upload an image:"/>
+        
+        <img src="{!v.image}"/>  
+        
+        <aura:if isTrue="{! v.spinnerWaiting }">
+            <lightning:spinner size="medium"/>
+        </aura:if>            
+    </div>	
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    onReadImage: function(component, event, helper) {
+        var files = component.get("v.files");
+        if (files && files.length > 0) {
+            var file = files[0][0];
+            if (!file.type.match(/(image.*)/)) {
+                return alert('Image file not supported');
+            }
+            if (file.size > 750000) {
+                return alert('File size cannot exceed 750000 bytes.\n' +
+                  'Selected file size: ' + file.size);
+            }            
+            var reader = new FileReader();
+            reader.onloadend = function() {
+                var dataURL = reader.result;
+                component.set("v.image", dataURL);
+                helper.onUploadImage(component, file, dataURL.match(/,(.*)$/)[1]);
+            };
+            reader.readAsDataURL(file);
+        }   
+    },
+
+    onGetImageUrl: function(component, event, helper) {
+        helper.onGetImageUrl(component);
+    },
+})
+
+<!-- TestCmpHelper.js -->
+({
+    onUploadImage: function(component, file, base64Data) {
+        var action = component.get("c.setAttachment");
+        var contactId = component.get("v.recordId");
+        action.setParams({
+            contactId: contactId,
+            fileName: file.name,
+            base64: base64Data
+        });
+        action.setCallback(this, function(a) {
+            component.set("v.spinnerWaiting", false);
+            var state = a.getState();
+            if (state === 'ERROR') {
+                console.log(a.getError());
+                alert("An error has occurred");
+            } else {
+                var refresh = $A.get('e.force:refreshView');
+                if (refresh) {
+                    refresh.fire();
+                } 
+            }
+        });
+        component.set("v.spinnerWaiting", true);
+        $A.enqueueAction(action); 
+    },
+    
+    onGetImageUrl: function(component, file, base64Data) {
+        var action = component.get("c.getImageUrlFromAttachment");
+        var contactId = component.get("v.recordId");
+        action.setParams({
+            contactId: contactId
+        });
+        action.setCallback(this, function(a) {
+            var state = a.getState();
+            if (state === 'ERROR') {
+                console.log(a.getError());
+                alert("An error has occurred");
+            } else {
+                if (!a.getReturnValue()=='') {
+                    component.set("v.image", "/servlet/servlet.FileDownload?file=" + a.getReturnValue());	                    
+                }
+            }
+        });
+        $A.enqueueAction(action);
+    }
+})
+
+<!-- TestCmpApexController.apxc -->
+public class TestCmpApexController {
+
+    @AuraEnabled
+    public static void setAttachment(Id contactId, String fileName, String base64) {
+        Blob fileBlob = EncodingUtil.base64Decode(base64);
+
+        Attachment[] attsOld = [SELECT Id FROM Attachment WHERE ParentId=:contactId];
+        delete attsOld;
+        
+        Attachment att = new Attachment();
+        att.Body = fileBlob;
+        att.ParentId = contactId;
+        att.Name = fileName;
+        insert att;  
+    }
+
+    @AuraEnabled
+    public static String getImageUrlFromAttachment(Id contactId) {
+        List<Attachment> atts = [SELECT Id FROM Attachment WHERE ParentId=:contactId];
+        if (atts.size()>0) {
+            return atts.get(0).Id;
+        }
+        return '';
+    }
+}

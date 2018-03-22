@@ -1,0 +1,86 @@
+<!--
+
+Create a component for Lightning Experience Record Pages. The component will automatically retrieve the contact phone number and render a custom button.
+
+1.	Define a Lightning Component for Lightning Experience Record Pages
+2.	Retrieve Contact data from Force.com
+3.	Use Lightning App Builder to deploy the component to a custom Lightning Record Page.
+
+Upload /Dev601/assets/images/callme.gif as a static resource named DialPhoneAnimation
+
+-->
+
+<!-- NEW DialButton.cmp -->
+<aura:component >
+    <aura:attribute name="phoneNumber" type="String" access="GLOBAL"  required="true"/>
+    
+    <div class="slds-text-align—center">
+        <a href="{! 'tel:' + v.phoneNumber }">
+            <img src="{!$Resource.DialPhoneAnimation}" class="roundbutton" />
+        </a>
+        <br />  
+        {!v.phoneNumber}
+    </div>
+    
+</aura:component>
+
+<!-- DialButton.css -->
+.THIS, .THIS.a {
+    width: 100%;
+    text-align: center;
+}
+.THIS .roundbutton {
+    border-radius: 5px;
+    border: 1px solid black;
+    box-shadow: 0px 4px 3px #666666;
+    margin-bottom: 10px;
+}
+
+.THIS .roundbutton:active {
+    box-shadow: 0px 1px 3px green;
+}
+
+
+<!-- NEW ContactPrimaryPhoneDialButton.cmp
+
+Description: Animated button for dialing contact's phone number
+Lightning Page: Checked
+Lightning Record Page: Checked
+
+-->
+<aura:component implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" 
+                access="global" >
+    
+    <aura:attribute name="simpleRecord" type="Contact" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <force:recordData aura:id="recordHandler"
+                      recordId="{!v.recordId}"
+                      fields="Phone"
+                      targetFields="{!v.simpleRecord}" />
+
+    <lightning:card>
+        <c:DialButton phoneNumber="{!v.simpleRecord.Phone}" />
+    </lightning:card>
+   
+</aura:component>
+
+<!-- ContactPrimaryPhoneDialButtonController.js -->
+({
+    doInit : function(component, event, helper) {
+        component.find('recordHandler').reloadRecord(); 
+    }
+})
+
+<!--
+
+In App Builder - new Record Page for Contact
+Label: Contact Detail with Dial Button
+Header and Right Sidebar
+
+Drag Recent Items to top
+Drag Record Detail to Bottom Left
+Drag ContactPrimaryPhoneDialButton to bottom right
+
+-->

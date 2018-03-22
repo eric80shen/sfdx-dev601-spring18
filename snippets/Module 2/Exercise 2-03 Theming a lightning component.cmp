@@ -1,0 +1,44 @@
+<!-- 
+
+Theme the components developer in previous exercise
+
+Tasks:
+1. Review the Capabilities of lightning:card
+2. Use lightning:card to add contrast to the search form.
+3. Use SLDS to Add Margin to a Component
+4. Use SLDS to apply padding within a Component
+5. Apply custom CSS
+
+-->
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+	
+    <div class="slds-m-bottom_small">
+	    <c:StudentBrowserForm />    
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	Photo gallery of students goes here
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserForm.cmp -->
+<aura:component >
+    
+    <lightning:card title="Filter Students" iconName="utility:search">
+        <div class="slds-p-horizontal_small">
+            <h1 class="crazycomic">Filter form goes here</h1>  
+        </div>  
+    </lightning:card>
+    
+</aura:component>
+
+<!-- StudentBrowserForm.css -->
+.THIS .crazycomic {
+    font-family: Comic Sans MS;
+    text-shadow: 2px 2px #c0c0c0;
+}

@@ -1,0 +1,20 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    <div class="background1">
+      <div class="background2" />
+    </div>
+</aura:component>
+
+<!-- TestCmp.css -->
+.THIS.background1 {
+    width: 200px;
+    height: 200px;
+    border: 1px solid red;
+    background-color: #344A5F; 
+}
+/* Note the space after the .THIS */
+.THIS .background2 {
+    width: 100px; height: 100px;
+    margin: auto;
+    background-color: #F0F1F2; 
+}

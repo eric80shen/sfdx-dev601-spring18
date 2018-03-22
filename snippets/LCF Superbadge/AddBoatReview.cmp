@@ -1,0 +1,111 @@
+<!-- AddBoatReview.cmp -->
+<aura:component >
+    
+    <aura:attribute name="boat" type="Boat__c" access="public" />
+    <aura:attribute name="boatReview" type="BoatReview__c" access="private" />
+    <aura:attribute name="recordError" type="String" access="private" />
+    
+    <aura:registerEvent name="boatreviewadded" type="c:BoatReviewAdded" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="service"
+                      targetFields="{!v.boatReview}"
+                      fields="Id,Name,Comment__c,Boat__c,Rating__c"
+                      targetError="{!v.recordError}"
+                      recordUpdated="{!c.onRecordUpdated}" />
+    
+    <div class="slds-grid slds-grid_vertical">
+        <div class="slds-col slds-m-bottom_small">
+        	<lightning:input type="text" name="title" label="Title" 
+                             value="{!v.boatReview.Name}" />
+        </div>
+        <div class="slds-col slds-m-bottom_small">
+            Description:
+            <lightning:inputRichText disabledCategories="FORMAT_FONT" placeholder="Comment"
+                                     value="{!v.boatReview.Comment__c}" />
+        </div>
+        <div class="slds-col slds-m-bottom_small">
+            <c:FiveStarRating value="{!v.boatReview.Rating__c}" readonly="false" />
+        </div>
+        <div class="slds-col slds-align_absolute-center">
+            <lightning:button iconName="utility:save" variant="neutral" label="Submit" onclick="{!c.onSave}" />
+        </div>
+    </div>
+	
+</aura:component>
+
+<!-- AddBoatReviewController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+	onSave : function(component, event, helper) {
+        component.find("service").saveRecord(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {
+                //component.set('v.recordId', saveResult.recordId);
+                // record is saved successfully
+                var resultsToast = $A.get("e.force:showToast");
+                if (resultsToast) {
+                 resultsToast.setParams({
+                    "title": "Saved",
+                    "message": "The record was saved."
+                });
+                resultsToast.fire();                   
+                } else {
+                    alert("The record was saved.");
+                }
+                
+                var evt = component.getEvent("boatreviewadded");
+                evt.fire();
+                
+            } else {
+                console.log('Error, state: ' + saveResult.state + ', error: ' + JSON.stringify(saveResult.error));
+            }
+        });
+        
+        helper.onInit(component, event, helper);
+	},
+    
+	onRecordUpdated : function(component, event, helper) {
+        
+        var changeType = event.getParams().changeType;
+        if (changeType === "ERROR") {
+            console.log(component.get('v.recordError'));
+        }
+        else if (changeType === "CHANGED") {
+            var resultsToast = $A.get("e.force:showToast");
+            if (resultsToast) {
+                resultsToast.setParams({
+                    "title": changeType,
+                    "message": "The record was updated"
+                });
+                resultsToast.fire();                   
+            } else {
+                alert("The record was updated.");
+            }            
+        }
+	}
+})
+
+<!-- AddBoatReviewHelper.js -->
+({
+	onInit : function(component, event, helper) {
+        component.find("service").getNewRecord(
+            "BoatReview__c", // sObject type (objectApiName)
+            null,      // recordTypeId
+            false,     // skip cache?
+            $A.getCallback(function() {
+                var rec = component.get("v.boatReview");
+                var error = component.get("v.recordError");
+                if(error || (rec === null)) {
+                    console.log("Error initializing record template: " + error);
+                    return;
+                }
+                console.log("Record template initialized: " + rec.sObjectType);
+                component.set('v.boatReview.Boat__c', component.get('v.boat').Id);
+            })
+        );		
+	}
+})

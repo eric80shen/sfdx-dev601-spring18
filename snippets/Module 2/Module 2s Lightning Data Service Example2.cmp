@@ -1,0 +1,131 @@
+<!-- Lightning Data Service Example 
+
+Add the following two components to an Account detail page
+
+Note: If you're gonna use the layoutType="FULL" thing make sure all the necessary
+fields are on the page layout or add using the fields attribute
+
+-->
+
+<!-- accDisplay.cmp -->
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    
+    <aura:attribute name="accountRecord" type="Account" />
+    
+    <force:recordData recordId="{!v.recordId}"
+                      targetFields="{!v.accountRecord}"
+                      fields="Id, Name, Industry, Description, Phone" /> 
+    
+    <lightning:card iconName="standard:account" title="Account Display Component">
+        <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+            <lightning:layoutItem>
+                <lightning:layout>
+                    <lightning:layoutItem size="2">Name:</lightning:layoutItem> 
+                    <lightning:layoutItem padding="horizontal-small">{!v.accountRecord.Name}</lightning:layoutItem>            
+                </lightning:layout>
+            </lightning:layoutItem>
+            <lightning:layoutItem>
+                <lightning:layout>
+                    <lightning:layoutItem size="2">Industry:</lightning:layoutItem> 
+                    <lightning:layoutItem padding="horizontal-small">{!v.accountRecord.Industry}</lightning:layoutItem>            
+                </lightning:layout>
+            </lightning:layoutItem>        
+            <lightning:layoutItem>
+                <lightning:layout>
+                    <lightning:layoutItem size="2">Description:</lightning:layoutItem> 
+                    <lightning:layoutItem padding="horizontal-small">{!v.accountRecord.Description}</lightning:layoutItem>            
+                </lightning:layout>
+            </lightning:layoutItem>
+            <lightning:layoutItem>
+                <lightning:layout>
+                    <lightning:layoutItem size="2">Phone:</lightning:layoutItem> 
+                    <lightning:layoutItem padding="horizontal-small">{!v.accountRecord.Phone}</lightning:layoutItem>            
+                </lightning:layout>
+            </lightning:layoutItem>        
+        </lightning:layout>
+    </lightning:card>
+    
+    <!--
+
+    <force:recordData recordId="{!v.recordId}"
+                      targetRecord="{!v.accountRecord}"
+                      layoutType="FULL" />
+
+    <div class="slds-media">
+        <div class="slds-media__body">
+            <div aura:id="accountDetails" class="slds-m-top_small">
+                <ul class="slds-grid slds-wrap">
+                    <li class="slds-list__item slds-size_1-of-1"><span class="slds-text-heading_medium slds-m-right_small">Account Display</span></li>
+                    <li class="slds-list__item slds-size_1-of-2"><span class="slds-text-color_weak slds-m-right_small">Name:</span> {!v.accountRecord.fields.Name.value}</li>
+                    <li class="slds-list__item slds-size_1-of-2"><span class="slds-text-color_weak slds-m-right_small">Industry:</span> {!v.accountRecord.fields.Industry.value}</li>
+                    <li class="slds-list__item slds-size_1-of-2"><span class="slds-text-color_weak slds-m-right_small">Description:</span> {!v.accountRecord.fields.Description.value}</li>
+                    <li class="slds-list__item slds-size_1-of-2"><span class="slds-text-color_weak slds-m-right_small">Phone:</span> {!v.accountRecord.fields.Phone.value}</li>
+                </ul>
+            </div>
+        </div>
+    </div>    
+	-->
+    
+</aura:component>
+
+<!-- accEdit.cmp -->
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+    
+    <aura:attribute name="accountRecord" type="Account" />
+    <aura:attribute name="recordSaveError" type="String" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="recordFields" type="String[]" default="['Id', 'Name', 'Industry', 'Description', 'Phone']" />
+    
+    <force:recordData aura:id="recordEditor"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.accountRecord}"
+        			  fields="{!v.recordFields}"
+                      mode="EDIT" />
+
+    <lightning:card iconName="standard:account" title="Account Edit Component">
+        <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+            <lightning:layoutItem>
+                <lightning:input name="accName" label="Account Name"
+                                 value="{!v.accountRecord.Name}" required="true" />        
+            </lightning:layoutItem>
+            <lightning:layoutItem>
+                <lightning:input name="accIndustry" label="Industry"
+                                 value="{!v.accountRecord.Industry}" required="true" />        
+            </lightning:layoutItem>
+            <lightning:layoutItem>
+                <lightning:input name="accDescription" label="Description"
+                                 value="{!v.accountRecord.Description}" required="true" />        
+            </lightning:layoutItem>
+            <lightning:layoutItem>
+                <lightning:input name="accPhone" label="Phone"
+                                 value="{!v.accountRecord.Phone}" required="true" />        
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="around-small">
+                <lightning:button label="Save Account" onclick="{!c.handleSaveRecord}" />        
+            </lightning:layoutItem>
+        </lightning:layout>
+    </lightning:card>
+    
+    <aura:if isTrue="{!not(empty(v.recordSaveError))}">
+        <br/>Error: <ui:outputText value="{!v.recordSaveError}"/>
+    </aura:if>
+
+</aura:component>
+
+<!-- accEditController.js -->
+({
+    handleSaveRecord : function(cmp, event, helper) {
+        var recordLoader = cmp.find("recordEditor");
+        recordLoader.saveRecord($A.getCallback(function(saveResult) {
+            if (saveResult.state === "ERROR") {
+                var errMsg = "";
+                for (var i = 0; i < saveResult.error.length; i++) {
+                    errMsg += saveResult.error[i].message + "\n";
+                }
+                cmp.set("v.recordSaveError", errMsg);
+            } else {
+                cmp.set("v.recordSaveError", "");
+            }
+        }));
+    }
+})

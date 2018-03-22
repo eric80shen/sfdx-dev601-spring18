@@ -1,0 +1,74 @@
+<!--
+LockerService
+
+LockerService (LS) is Salesforce’s security architecture for Lightning components. LockerService isolates individual Lightning components in their own containers so they can’t interact with one another directly except through tools provided by the framework, like Aura attributes or events. 
+
+This component-level isolation protects your app from malicious components written by other developers, and it allows only interactions that you explicitly declare. 
+
+LockerService also provides explicit security measures for your components, such as a Content Security Policy (CSP) to help mitigate cross-site scripting (XSS) attacks and resource restrictions to ensure that images and scripts load securely.
+
+LockerService has opinions about software engineering, too. It makes your code easier to support by allowing access only to supported APIs and hiding unpublished framework internals. LockerService also enforces strict mode on all JavaScript code to minimize code-related drama.
+
+Content Security Policy (CSP)
+
+Salesforce’s content security policy disallows inline JavaScript and the JavaScript eval function in your code. This helps secure your components against attacks such as cross-site scripting. Fire up the Salesforce Lightning CLI tool and search your code and its dependencies to see if anything uses these features. Remove any calls that you can find. If one of your libraries uses inline JavaScript or eval, you may have to modify it, or look for replacement libraries that work under CSP.
+
+-->
+
+<!-- LockerService demo  TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" >
+
+    <lightning:badge label="Boo!" class="simonsclass"/>
+    
+    <div aura:id="topdiv" class="simonsclass">
+    	Here is the innerHTML text
+    </div>
+    
+    <c:Test2 />
+
+</aura:component>
+
+<!-- Test2.cmp -->
+<aura:component >
+    
+    <lightning:button label="Check Inner Text" onclick="{!c.handleClick}" />
+	
+</aura:component>
+
+<!-- Test2Controller.js -->
+({
+	handleClick : function(component, event, helper) {
+        var div = document.querySelector(".simonsclass");
+        alert(div.innerHTML);
+	}
+})
+
+<!-- 
+
+With LockerService enabled (API v40) alert shows "Here is the innerHTML text"
+With LockerService disabled (API v39) alert shows "Boo!" (the badge renders as a <span> tag)
+
+Watch out for caching though!
+-->
+
+<!-- Example from https://developer.salesforce.com/blogs/developer-relations/2016/04/introducing-lockerservice-lightning-components.html -->
+
+<!-- TestCmp -->
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" >
+
+    <ui:button press="{!c.handlePress}">
+        <div class="simonsclass">Click Me</div>
+    </ui:button>
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    handlePress : function(component, event, helper) {
+        console.log("Window   : " + window.toString());
+        console.log("Document : " + document.toString());
+        var div = document.querySelector(".simonsclass");
+        console.log("Div      : " + div.toString());
+        console.log("innerHTML: " + div.parentNode.innerHTML);
+    }
+})

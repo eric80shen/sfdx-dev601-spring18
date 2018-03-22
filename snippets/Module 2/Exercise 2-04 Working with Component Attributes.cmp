@@ -1,0 +1,75 @@
+<!-- 
+
+Start building the student gallery
+
+Tasks:
+1. Define the StudentTile Component
+2. Define Component Attributes
+3. Generate Dynamic Markup
+
+-->
+
+<!-- NEW StudentTile.cmp -->
+<aura:component >
+    
+    <aura:attribute name="student" type="Contact" access="public" 
+                    default="{'sobjectType' : 'Contact', 
+                              'Name' : 'Joe Flowers',
+                               PhotoUrl : '/services/images/photo/003B0000009VnYcIAK'}"/>
+    <aura:attribute name="selected" type="boolean" access="public" default="false" />
+    
+    <lightning:button variant="neutral" class="{! v.selected ? 'tile selected' : 'tile' }">
+        
+        <div class="innertile" style="{# 'background-image:url(' + v.student.PhotoUrl + ')' }" >
+            <div class="lower-third">
+                <h1 class="truncate">{!v.student.Name}</h1>
+            </div>
+        </div>
+        
+    </lightning:button>
+	
+</aura:component>
+
+<!-- StudentTile.css -->
+.THIS.selected {
+    border: 3px solid rgb(0, 112, 210);
+}
+
+.THIS.tile {
+    width: 128px;
+    height: 128px;
+    padding: 1px !important;
+}
+
+.THIS .innertile {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+}
+
+.THIS .lower-third {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: #FFFFFF;
+    background-color: rgba(0, 0, 0, .4);
+    padding: 6px 8px;
+}
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+	
+    <div class="slds-m-bottom_small">
+	    <c:StudentBrowserForm />    
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	<c:StudentTile selected="true" />
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>

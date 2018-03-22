@@ -1,0 +1,53 @@
+<!-- MyContainerData.cmp - the sub-tag component -->
+<aura:component access="public">
+    <aura:attribute name="firstName" type="String" required="true" access="public" />
+    <aura:attribute name="lastName" type="String" required="true" access="public" />
+</aura:component>
+
+<!-- MyContainer.cmp - the base-tag component -->
+<aura:component access="public">
+    <aura:attribute name="items" type="Object[]" description="The subtag items" access="public"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <table style="border: 1px solid black; margin: 10px; width: 50%;">
+        <tr>
+            <th style="border: 1px solid black; padding: 5px;"><b>First Name</b></th>
+            <th style="border: 1px solid black; padding: 5px;"><b>Last Name</b></th>
+        </tr>
+        <aura:iteration items="{!v.items}" var="item">
+            <tr>
+                <td style="border: 1px solid black; padding: 5px;">{!item.firstName}</td>
+                <td style="border: 1px solid black; padding: 5px;">{!item.lastName}</td>
+            </tr>
+        </aura:iteration>
+    </table>
+    
+</aura:component>
+
+<!-- MyContainerController.js - the base-tag component controller -->
+({
+    doInit : function(component, event, helper) {
+        var body = component.get("v.body");
+        var items = [];
+        var rowCmp = null;
+        
+        // Loop through subtags and grab attributes
+        for (var i = 0; i<body.length; i++) {
+            rowCmp = body[i];
+            items.push({
+                firstName : rowCmp.get("v.firstName"),
+                lastName : rowCmp.get("v.lastName")
+            })
+        }
+        component.set("v.items", items);
+    }
+})
+
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    <c:MyContainer>
+        <c:MyContainerData firstName="Simon" lastName="Connock" />
+        <c:MyContainerData firstName="Barbara" lastName="Campos" />        
+    </c:MyContainer>   
+</aura:component>

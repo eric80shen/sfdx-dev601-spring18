@@ -1,0 +1,113 @@
+<!-- 
+
+Call an Apex method from a Lightning Component and render the results in a series of tiles
+
+Tasks:
+1. Create an Apex Class and method that can be accessed by a Lightning Component.
+2. Define an Abstract Component to facilitate code sharing.
+3. Define a Helper method to invoke Apex methods in a consistent manner.
+4. Request data from Force.com
+5. Output a set of Contacts as tiles.
+
+-->
+
+<!-- NEW Apex Class StudentBrowser -->
+public with sharing class StudentBrowser {
+    
+    @AuraEnabled
+    public static List<Contact> getStudents(String instructorId, String courseDeliveryId) {
+        String query = 'select id, Name, Email, Phone, Title, Account.Name, PhotoUrl from Contact where Name <> \'\'';
+        
+        if (courseDeliveryId != '') {
+            query = query + ' and id in (select Student__c from course_attendee__c where course_delivery__c = \'' + String.escapeSingleQuotes(courseDeliveryId) + '\')';
+        } else if (instructorId != '') {
+            query = query + ' and id in (select Student__c from course_attendee__c where course_delivery__r.Instructor__c = \'' + String.escapeSingleQuotes(instructorId) + '\')';                    
+        }
+        
+        query = query + ' order by Name';
+        
+        List<Contact> sobjList = Database.query(query);
+        return sobjList;        
+    }
+}
+
+<!-- NEW Base.cmp -->
+<aura:component abstract="true">
+
+	{!v.body}
+    
+</aura:component>
+
+<!-- BaseHelper.js -->
+({
+    callServer : function(component,method,callback,params) {
+        var action = component.get(method);
+        if (params) {
+            action.setParams(params);
+        }
+        
+        action.setCallback(this,function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") { 
+                // pass returned value to callback function
+                callback.call(this,response.getReturnValue());   
+            } else if (state === "ERROR") {
+                // generic error handler
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error" + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown Error");
+                }
+            }
+        });
+        
+        $A.enqueueAction(action);
+    }
+})
+
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	
+    <div class="slds-m-bottom_small">
+	    <c:StudentBrowserForm />    
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	<c:StudentTiles students="{!v.studentList}" />
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserHelper.js -->
+({
+    onInit : function(component, event, helper) {
+		helper.queryStudents(component, helper, "", "");		
+    },
+    
+    queryStudents : function(component, helper, instructorId, courseDeliveryId) {
+        helper.callServer(
+        	component,
+        	"c.getStudents",
+            function(response) {
+                component.set('v.studentList', response);
+            },
+            {
+                instructorId : instructorId,
+                courseDeliveryId : courseDeliveryId
+            }
+        );
+    }
+})

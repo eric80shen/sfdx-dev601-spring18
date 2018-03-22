@@ -1,0 +1,279 @@
+<!--
+
+Create a framework and helper functions for generating toasts and notifications
+
+Tasks:
+1. Define a custom component event for triggering notifications
+2. Invoke the lightning:notificationsLibrary component Define a custom event.
+3. Create shared helper functions to make it easier to invoke toasts and notifications. 
+
+-->
+
+<!-- NEW Notification.evt
+
+Description: Fired from components to perform notifications and toasts.
+
+-->
+<aura:event type="COMPONENT" description="" >
+    
+    <aura:attribute name="type" type="String"/>
+    <aura:attribute name="config" type="Object"/>
+    
+</aura:event>
+
+<!-- AwInstructors.cmp -->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" 
+                extends="c:Base" access="global" >
+    
+    <aura:attribute name="viewMode" type="String" default="students" access="private" />
+    <aura:attribute name="certificationId" type="Id" access="private" />
+    <aura:attribute name="certificationLabel" type="String" access="private" />
+    
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <aura:handler name="onnotification" event="c:Notification" action="{!c.onNotification}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <lightning:layout horizontalAlign="space" multipleRows="true">
+        
+        <lightning:layoutItem padding="around-small" size="12"
+                              largeDeviceSize="2"
+                              mediumDeviceSize="3"
+                              smallDeviceSize="12">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="6"
+                                  largeDeviceSize="7"
+                                  mediumDeviceSize="5"
+                                  smallDeviceSize="12">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="4"
+                                  largeDeviceSize="3"
+                                  mediumDeviceSize="4"
+                                  smallDeviceSize="12">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                
+                <lightning:layoutItem padding="around-small" size="10"
+                                      largeDeviceSize="10"
+                                      mediumDeviceSize="9"
+                                      smallDeviceSize="12">
+                    <c:CertificationStudentList label="{!v.certificationLabel}" 
+                                                certificationId="{!v.certificationId}" />
+                </lightning:layoutItem>
+                
+            </aura:set>
+        </aura:if>
+        
+    </lightning:layout>
+
+</aura:component>
+
+<!-- AwInstructorsController.js -->
+({
+    onNavSelect : function(component, event, helper) {
+        var selectionName = event.getParam('name');
+        if (selectionName == 'students') {
+            component.set('v.viewMode','students');
+        } else {
+            component.set('v.viewMode','certifications');
+            
+            var key = selectionName.split(',');
+            component.set('v.certificationId',key[0]);
+            component.set('v.certificationLabel',key[1]);
+        }		
+    },
+    
+    onNotification : function(component, event, helper) {
+        var notifService = component.find('notifLib');
+        var config = event.getParam('config');
+        if (event.getParam('type') == 'toast') {
+            notifService.showToast(config);
+        } else { 
+            // notification
+            notifService.showNotice(config);
+        }
+    },
+    
+    doInit: function(component,event,helper) {
+        helper.showToast(
+            component,
+            "Welcome",
+            "Don't forget to check back here for updated class schedules and assignments"
+        );  
+    }
+})
+
+<!-- Base.cmp -->
+<aura:component abstract="true">
+    
+    <aura:registerEvent name="onnotification" type="c:Notification" />
+
+	{!v.body}
+
+</aura:component>
+
+<!-- BaseHelper.js -->
+({
+    callServer : function(component,method,callback,params) {
+        var action = component.get(method);
+        if (params) {
+            action.setParams(params);
+        }
+        
+        action.setCallback(this,function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") { 
+                // pass returned value to callback function
+                callback.call(this,response.getReturnValue());   
+            } else if (state === "ERROR") {
+                // generic error handler
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error" + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown Error");
+                }
+            }
+        });
+        
+        $A.enqueueAction(action);
+    },
+    
+    isLightningExperience : function() {
+        var toast = $A.get("e.force:showToast");
+        if (toast){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    showNotification : function(component, header, title, message, variant, closeCallback) {
+        
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'notification',
+                config: {
+                    header: header,
+                    title: title,
+                    message: message,
+                    variant: variant,
+                    closeCallback: closeCallback
+                }
+            });
+            compEvent.fire();
+        }
+    },
+    
+    showToast : function(component, title, message, messageData, variant, mode) {
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'toast',
+                config: {
+                    title: title,
+                    message: message,
+                    messageData: messageData,
+                    variant: variant,
+                    mode: mode
+                }
+            });
+            compEvent.fire();
+        }
+    }
+})
+
+<!-- EditStudentNote.cmp -->
+<aura:component extends="c:Base">
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="public"/>
+    <!--<aura:attribute name="history" access="public" type="Object[]" /> -->    
+	<aura:attribute name="courseAttendeeId" type="Id" access="private"/>
+    <aura:attribute name="courseAttendeeRecord" type="Course_Attendee__c" access="private"/>
+    <aura:attribute name="recordSaveError" type="String" access="private"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="change" value="{!v.history}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="recordEditor"
+                      recordId="{!v.courseAttendeeId}"
+                      targetFields="{!v.courseAttendeeRecord}"
+                      targetError="{!v.recordSaveError}"
+                      fields="Id,InstructorNotes__c" 
+                      mode="EDIT"/>
+    
+    <lightning:layout class="slds-grid_vertical">
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:select name="classSelector" 
+                              label="Select a class:" 
+                              value="{!v.courseAttendeeId}" 
+                              onchange="{!c.onCourseAttendeeChange}">
+                <aura:iteration items="{!v.history}" var="historyItem">
+                    <option value="{!historyItem.Id}">
+                        {!historyItem.Course_Delivery__r.Start_Date__c + ' - ' + historyItem.Course_Delivery__r.Course__r.Name}
+                    </option>
+                    <!--
+                    <option value="{!historyItem.courseAttendeeId}">
+                        {!historyItem.startDate + '-' + historyItem.courseName}
+                    </option>
+                    -->                    
+                </aura:iteration>
+            </lightning:select>            
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small">
+            <lightning:inputRichText value="{!v.courseAttendeeRecord.InstructorNotes__c}" />
+        </lightning:layoutItem>
+        
+        <lightning:layoutItem padding="around-small" class="slds-text-align_center">
+            <lightning:button label="Save" variant="brand" onclick="{!c.saveRecord}" />
+        </lightning:layoutItem>
+        
+    </lightning:layout>
+    
+</aura:component>
+
+<!-- EditStudentNoteController.js -->
+({
+    doInit : function(component, event, helper) {
+        var history = component.get('v.history');
+        if (history.length > 0) {
+            component.set('v.courseAttendeeId',history[0].Id );
+            //component.set('v.courseAttendeeId', history[0].courseAttendeeId);            
+            component.find("recordEditor").reloadRecord();    
+        }         
+    },
+    
+    onCourseAttendeeChange : function(component, event, helper) {
+        component.find("recordEditor").reloadRecord(); 		
+    },
+    
+    saveRecord : function(component, event, helper) {
+        component.find("recordEditor").saveRecord($A.getCallback(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {       
+                helper.showToast(component,'','Record Saved','Huzzah!','success');
+            } else if (saveResult.state === "INCOMPLETE") {
+                helper.showNotification(component,'','Ooops','User is offline, device doesn\'t support drafts.','warning');      
+            } else if (saveResult.state === "ERROR") {
+                helper.showNotification(component,'','Problem saving record',JSON.stringify(saveResult.error),'error');      
+                
+            } else {
+                helper.showNotification(component,'','Unknown problem','state' +  saveResult.state + ', error: ' + JSON.stringify(saveResult.error),'error');      
+            }   
+        }));
+    }    
+})

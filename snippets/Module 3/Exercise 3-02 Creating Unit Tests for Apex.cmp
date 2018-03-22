@@ -1,0 +1,39 @@
+<!-- 
+
+During this exercise, you will create Apex unit tests to achieve 100% code coverage.
+
+Tasks:
+•	Create unit tests for your StudentBrowserForm, StudentBrowser, and StudentDetail apex classes.
+•	Create a Unit Test that verifies schema integrity.
+
+-->
+
+<!-- NEW Apex class -->
+@isTest
+private class StudentDetailTests {
+    
+    private static testMethod void testStudentDetail () {
+        Contact myContact = new Contact (FirstName='Steve', LastName='Drucker');
+        
+        // Insert mock data 	   
+        List<Contact> sList = new List<Contact>();
+        sList.add(myContact);
+        insert sList;
+
+        // Do test
+        List<contact> myContacts = [SELECT Id FROM Contact LIMIT 1];
+        List<object> myNotes = StudentDetail.getNotesByStudent(myContacts[0].Id);
+        
+        // Check result
+		System.assertEquals(myNotes.size(),0);
+    }
+    
+    //private static testMethod void testStudentBrowser() {
+    //    List<Contact> myStudents = StudentBrowser.getStudents('', '');
+    //}
+    
+    //private static testMethod void testStudentBrowserForm() {  
+    //    List<User> myInstructors = StudentBrowserForm.getInstructors();
+    //    List<Course_Delivery__c> myDeliveries = StudentBrowserForm.getDeliveriesByInstructor(myInstructors[0].Id);
+    //} 
+}

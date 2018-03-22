@@ -1,0 +1,31 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    <aura:attribute name="name" type="String" default="Enter name (required)" />
+    
+    <div class="slds-box slds-size_1-of-3" style="margin: 50px">
+        <div class="slds-form_stacked" style="margin: 5px">
+            <lightning:input name="firstName" label="First Name" required="true" />
+            
+            <lightning:input name="lastName" label="Last Name" required="true" 
+                             messageWhenValueMissing="Enter your last name!!!!" />
+            
+            <lightning:input name="nickName" label="Nick Name" required="true"
+                             minlength="2"
+                             maxlength="15"
+                             messageWhenBadInput="You must enter a minimum of 2 characters"
+                             messageWhenTooLong="Max 15 characters allowed!"/>
+            
+            <lightning:input name="ssn" label="Social Security Number" required="true"
+                             pattern="^(\d{3}-?\d{2}-?\d{4}|XXX-XX-XXXX)$"
+                             messageWhenPatternMismatch="You must enter a string in the format of 999-99-9999" />
+            
+            <lightning:input type="number" name="age" label="Age" required="true"
+                             min="18"
+                             max="65"
+                             messageWhenRangeUnderflow="You must be at least 18"
+                             messageWhenRangeOverflow="You must be 65 or younger" />
+
+            <lightning:button label="Submit" />
+        </div>   
+    </div>
+   
+</aura:component>

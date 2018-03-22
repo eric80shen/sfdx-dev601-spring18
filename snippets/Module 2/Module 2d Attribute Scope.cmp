@@ -1,0 +1,33 @@
+<!--
+	global - The attribute can be used in any namespace
+	public - (default) The attribute can be used within the same namespace only
+	private - The attribute can be used only within the container app, interface, 
+	          component, or event, and can’t be referenced externally
+-->
+
+<!-- TestApp.app -->
+<aura:application access="global" extends="force:slds">
+
+    <div class="slds-box slds-size_1-of-4">    
+        <c:TestCMP message="Hello World!"/>
+    </div>
+
+</aura:application>
+
+<!-- TestCmp.cmp - this will cause a syntax error -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="message" type="String" default="Default Message" access="private" />
+    
+    {!v.message}
+    
+</aura:component>
+
+<!-- TestCmp.cmp - this will be ok -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="message" type="String" default="Default Message" access="public" />
+
+    {!v.message}
+    
+</aura:component>

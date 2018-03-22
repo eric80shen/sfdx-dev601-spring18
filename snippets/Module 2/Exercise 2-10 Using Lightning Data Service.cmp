@@ -1,0 +1,134 @@
+<!-- 
+
+Use the Lightning Data Service to load a Contact record and display the record name in a card
+
+Tasks:
+1. Define and surface a new component in Lightning App Builder.
+2. Use Lightning Data Service to load a Contact record from Force.com
+3. Handle a custom Application event.
+
+-->
+
+<!-- NEW AwInstructorsStudentSelected.evt -->
+<aura:event type="APPLICATION" description="Event template" >
+    <aura:attribute name="courseDeliveryId" type="String"/>  
+    <aura:attribute name="contactId" type="String"/>
+</aura:event>
+
+<!-- NEW StudentDetail.cmp 
+
+Lightning page: Checked 
+-->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="contactId" access="private" type="String" />
+    <aura:attribute name="courseDeliveryId" access="private" type="String" />
+    <aura:attribute name="contact" access="public" type="Contact" />
+    <aura:attribute name="recordError" access="private" type="String" />
+    
+    <aura:handler event="c:AwInstructorsStudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.contactId}"
+                      targetFields="{!v.contact}"
+                      targetError="{!v.recordError}"
+                      fields="Name,Email,Phone,Description" />
+    
+    <lightning:card title="{!v.contact.Name}">
+        
+    </lightning:card>
+    
+</aura:component>
+
+<!-- StudentDetailController.js -->
+({
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.contactId',contactId);
+        component.set('v.courseDeliveryId', courseDeliveryId);
+        component.find('recordLoader').reloadRecord(); 
+    }
+})
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    <aura:attribute name="selectedCourseDeliveryId" type="String" access="private" default="" />
+    <aura:attribute name="selectedContactId" type="String" access="private" default="" />
+    
+    <aura:registerEvent name="broadcastStudentSelected" type="c:AwInstructorsStudentSelected"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}" />
+	
+    <div class="slds-m-bottom_small">
+        <!-- Following syntax saves having to write a handler statement -->
+	    <c:StudentBrowserForm onStudentFilterChange="{!c.onStudentFilterChange}" />
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	<c:StudentTiles students="{!v.studentList}" 
+                            selectedStudentId="{!v.selectedContactId}"/>
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onStudentFilterChange : function(component, event, helper) {
+        var instructorId = event.getParam('instructorId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.selectedCourseDeliveryId', courseDeliveryId);
+        helper.queryStudents(component, helper, instructorId, courseDeliveryId);
+    },
+    
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        component.set('v.selectedContactId',contactId);
+        helper.broadcastStudentSelected(component);
+    }    
+})
+
+<!-- StudentBrowserHelper.js -->
+({
+    onInit : function(component, event, helper) {
+		helper.queryStudents(component, helper, "", "");		
+    },
+    
+    queryStudents : function(component, helper, instructorId, courseDeliveryId) {
+        helper.callServer(
+        	component,
+        	"c.getStudents",
+            function(response) {
+                component.set('v.studentList', response);
+            },
+            {
+                instructorId : instructorId,
+                courseDeliveryId : courseDeliveryId
+            }
+        );
+    },
+    
+    broadcastStudentSelected : function(component) {
+        var appEvent = $A.get("e.c:AwInstructorsStudentSelected");
+        appEvent.setParams({
+            courseDeliveryId : component.get('v.selectedCourseDeliveryId'),
+            contactId : component.get('v.selectedContactId')
+        });
+        appEvent.fire();
+    }
+})
+
+//
+// Open Lightning App Builder and deploy the StudentDetail component directly above the chatter feed.
+//

@@ -1,0 +1,141 @@
+<!--
+
+During this exercise, you will enable the storage service in your app template and improve performance by persistently caching the list of courses for local access.
+
+Tasks:
+1. Enable the Storage Service
+2. Cache Data
+3. Cache the Course List
+
+-->
+
+<!-- AwInstructorsAppTemplate.cmp -->
+<aura:component isTemplate="true" extends="aura:template">
+    
+    <!--<aura:set attribute="title" value="Don't Panic!"/>-->
+    <aura:set attribute="title" value="AwInstructors"/>
+    
+    <aura:set attribute="auraPreInitBlock">
+        <auraStorage:init name="actions"
+                          persistent="true"
+                          secure="false"
+                          maxSize="1024" />
+    </aura:set>
+    
+</aura:component>
+
+<!-- BaseHelper.js -->
+({
+    callServer : function(component, method, callback, params, storable) {
+        var compEvent = component.getEvent("loading");
+        compEvent.fire();
+
+        var action = component.get(method);
+        if (params) {
+            action.setParams(params);
+        }
+        
+        if (storable) {
+            action.setStorable();
+        } else {
+            action.setStorable({
+                "ignoreExisting": "true"
+            });
+        }
+
+        action.setCallback(this,function(response) {
+            var state = response.getState();
+            if (state === "SUCCESS") { 
+                // pass returned value to callback function
+                callback.call(this,response.getReturnValue());   
+            } else if (state === "ERROR") {
+                // generic error handler
+                var errors = response.getError();
+                if (errors) {
+                    console.log("Errors", errors);
+                    if (errors[0] && errors[0].message) {
+                        throw new Error("Error" + errors[0].message);
+                    }
+                } else {
+                    throw new Error("Unknown Error");
+                }
+            }
+            
+            var compEvent = component.getEvent("doneloading");
+            compEvent.fire();
+        });
+        
+        $A.enqueueAction(action);
+    },
+    
+    isLightningExperience : function() {
+        var toast = $A.get("e.force:showToast");
+        if (toast){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    
+    showNotification : function(component, header, title, message, variant, closeCallback) {
+        
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'notification',
+                config: {
+                    header: header,
+                    title: title,
+                    message: message,
+                    variant: variant,
+                    closeCallback: closeCallback
+                }
+            });
+            compEvent.fire();
+        }
+    },
+    
+    showToast : function(component, title, message, messageData, variant, mode) {
+        if (this.isLightningExperience()) {
+            var compEvent = component.getEvent("onnotification");
+            
+            compEvent.setParams({
+                type : 'toast',
+                config: {
+                    title: title,
+                    message: message,
+                    messageData: messageData,
+                    variant: variant,
+                    mode: mode
+                }
+            });
+            compEvent.fire();
+        }
+    }
+})
+
+<!-- StudentBrowserFormHelper.js -->
+({
+	onInit : function(component, event, helper) {
+		helper.callServer(component,
+                          "c.getInstructors",
+                          function(response) {
+                              component.set('v.instructors', response);
+                          },
+                          null,
+                          true
+        );
+	},
+    
+    onFilterChange : function(component) {
+        var e = component.getEvent('onStudentFilterChange');
+        e.setParams(
+            {
+                instructorId : component.get('v.selectedInstructorId'),
+                courseDeliveryId : component.get('v.selectedDeliveryId')
+        	}
+        );
+        e.fire();
+    }
+})

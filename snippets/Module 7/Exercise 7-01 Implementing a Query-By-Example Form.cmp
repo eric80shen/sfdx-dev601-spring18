@@ -1,0 +1,404 @@
+<!--
+
+During this exercise, you will implement the data input form. You will define a new custom object named TripReport, layout the form, and dynamically populate the "Select Instructor" box with data from the User object in your org. You will also use Lightning Data Service to save the data to Salesforce Platform.
+
+Tasks:
+1. Define a Custom Object
+2. Install Scenario Prerequisities
+3. Use force:recordData to handle CRUD
+4. Implement the Instructor Selection Box
+5. Define the form fields
+6. Implement a Radio Group
+7. Define a Slider Control
+8. Define a Rich Text Field
+9. Add Save/Cancel Buttons
+
+Custom Object
+Label: Trip Report
+Plural Label: Trip Reports
+Object Name: TripReport
+
+Field Name	Field Label	Type
+Date		Date		Date
+Instructor	Instructor	Lookup (User)
+Rating		Rating		Number(1,0)
+Review		Review		Rich Text Area
+ReviewType	Type		Picklist
+
+Values:
+Hotel
+Restaurant
+Training Center   
+Students
+
+-->
+
+<!-- NEW TripReportModeChange.evt -->
+<aura:event type="COMPONENT" description="">
+    <aura:attribute name="mode" type="String" />
+    <aura:attribute name="Id" type="String" />
+</aura:event>
+
+<!-- NEW Apex class -->
+public with sharing class TripReportForm {
+    
+    @AuraEnabled
+    public static List<User> getInstructors() {
+        return StudentBrowserForm.getInstructors();
+    }
+    
+    @AuraEnabled
+    public static List<String> getLocationTypes() {
+        List <String> options = new list <String>();
+        
+        Schema.DescribeFieldResult fieldResult = TripReport__c.ReviewType__c.getDescribe();
+        List<Schema.PicklistEntry> ple = fieldResult.getPicklistValues();
+        
+        for( Schema.PicklistEntry f : ple)
+        {
+            options.add(f.getLabel());
+        }       
+        return options;
+    }
+}
+
+<!-- NEW TripReportForm.cmp -->
+<aura:component extends="c:Base" controller="TripReportForm">
+    <aura:attribute name="Id" type="String" access="public" default="" description="Id for Trip Report" />
+    <aura:attribute name="objReport" type="Object" access="private" description="Target for force:recordData" />
+    <aura:attribute name="objReportFields" type="Object" access="private" description="Target fields for force:recordData" />
+    <aura:attribute name="objReportError" type="String" access="private" description="Error message for force:recordData exception handling" />
+    <aura:attribute name="instructors" type="User[]" access="private" />
+    <aura:attribute name="reviewOptions" type="Object[]" access="private"/>
+    <aura:attribute name="validateFields" type="String[]" access="private"
+                    default="instructorId,locationName,dateVisited,reviewType" />
+
+    <aura:registerEvent name="ontripreportmodechange"  type="c:TripReportModeChange"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.Id}" action="{!c.onChangeId}" />   
+
+    <aura:if isTrue="{!empty(v.Id)}">
+        <force:recordData aura:id="recordOps" 
+                          targetRecord="{!v.objReport}"
+                          targetFields="{!v.objReportFields}"
+                          targetError="{!v.objReportError}"
+                          mode="EDIT"      
+                          fields="Name,Instructor__c,Date__c,Rating__c,Review__c,ReviewType__c" />
+        <aura:set attribute="else">
+            <force:recordData aura:id="recordOps" 
+                              recordId="{!v.Id}"
+                              targetRecord="{!v.objReport}"
+                              targetFields="{!v.objReportFields}"
+                              targetError="{!v.objReportError}"
+                              mode="EDIT"
+                              fields="Name,Instructor__c,Date__c,Rating__c,Review__c,ReviewType__c"
+                              recordUpdated="{!c.onBlur}" />
+        </aura:set>
+    </aura:if>
+    
+    <aura:if isTrue="{!not(empty(v.objReportError))}">
+        <div>
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.objReportError}
+            </ui:message>
+        </div>
+    </aura:if>    
+
+    <lightning:card title="{!empty(v.Id) ? 'Add Trip Report' : 'Edit Trip Report'}">
+        <form class="slds-form—stacked" style="margin: 10px">
+            
+            <lightning:select label="Select Instructor" 
+                              name="instructor" 
+                              value="{!v.objReportFields.Instructor__c}" 
+                              required="true"
+                              aura:id="instructorId"
+                              onblur="{!c.onBlur}">
+                <option value="">Select Instructor</option>
+                <aura:iteration items="{!v.instructors}" var="instructor">
+                    <option value="{!instructor.Id}">
+                        {!instructor.Name}
+                    </option>
+                </aura:iteration>
+            </lightning:select>
+            
+            <lightning:input type="text" 
+                             name="Name" 
+                             label="Location Name" 
+                             value="{!v.objReportFields.Name}" 
+                             required="true" 
+                             aura:id="locationName"
+                             onblur="{!c.onBlur}" />
+            <lightning:input name="date" 
+                             type="date" 
+                             label="Date Visited" 
+                             value="{!v.objReportFields.Date__c}" 
+                             required="true"
+                             aura:id="dateVisited"
+                             onblur="{!c.onBlur}" />
+            <lightning:radioGroup type="button"
+                                  label="Review of:"
+                                  options="{!v.reviewOptions}"
+                                  name="reviewType"
+                                  value="{!v.objReportFields.ReviewType__c}" 
+                                  required="true"
+                                  aura:id="reviewType"
+                                  onblur="{!c.onBlur}" />
+            <lightning:slider label="Quality Rating"
+                              step="1"
+                              min="1"
+                              max="5"
+                              title="Higher score indicates higher quality"
+                              value="{!v.objReportFields.Rating__c}" />
+            Review:
+            <br />
+            <lightning:inputRichText disabledCategories="FORMAT_FONT" value="{!v.objReportFields.Review__c}"/>
+
+            <div class="slds-text-align_center" style="margin-top:5px">
+                <lightning:button variant="Brand" label="Save" aura:id="btnSubmit" 
+                                  onclick="{!c.onSave}" disabled="true"/>
+                <lightning:button label="Cancel" />
+            </div>
+
+        </form>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- TripReportFormController.js -->
+({
+    doInit : function(component, event, helper) {
+        helper.onInit(component,event,helper);
+    },
+    
+    onChangeId: function(component,event,helper) {
+        helper.onChangeId(component);  
+    },
+    
+    onSave: function(component,event,helper) {
+        
+        var service = component.find("recordOps");
+        
+        var obj = component.get('v.objReportFields');
+        
+        // lightning:radioGroup sometimes encodes the value in an array
+        // so we need to convert the array value to a simple value 
+        // before saving
+        if (Array.isArray(obj.ReviewType__c) && obj.ReviewType__c.length == 1 ) {
+            obj.ReviewType__c = obj.ReviewType__c[0];
+            component.set('v.objReportFields',obj);
+        }
+
+        service.saveRecord(function(saveResult) {
+            
+            if (saveResult.state === "SUCCESS" || 
+                saveResult.state === "DRAFT") {
+                
+                // record is saved successfully
+                
+                helper.showToast(component,"Transaction Complete","Your Trip Report was Saved.",null,"success");
+                
+                
+                var compEvent = component.getEvent("ontripreportmodechange");
+                compEvent.setParams({"mode" : "view", "id" : component.get('v.Id') });
+                compEvent.fire();   
+                
+            } else if (saveResult.state === "INCOMPLETE") {
+                // handle the incomplete state
+                component.set('v.objReportError','User is offline, device doesn\'t support drafts.');                    
+            } else if (saveResult.state === "ERROR") {
+                component.set('v.objReportError','Problem saving record, error: ' + JSON.stringify(saveResult.error));             
+            } else {
+                alert('Unknown problem, state: ' + saveResult.state);
+            }
+        });
+    }  
+})
+
+<!-- TripReportFormHelper.js -->
+({
+    onChangeId: function(component) {
+        
+        var Id = component.get('v.Id');
+        var recordOps = component.find("recordOps");
+        if (recordOps && recordOps.getNewRecord && (Id == '' || !Id)) {
+            recordOps.getNewRecord(
+                "TripReport__c", // sObject type (objectApiName)
+                null,      // recordTypeId
+                false,     // skip cache?
+                $A.getCallback(function() {
+                    var rec = component.get("v.objReport");
+                    var error = component.get("v.objReportError");
+                    if(error || (rec === null)) {
+                        console.log("Error initializing record: " + error);
+                        return;
+                    }
+                    component.set('v.objReportFields.Rating__c', 1); // Sets slider to 1
+                    console.log("Record initialized: ",rec);
+                })
+            );
+        }
+    },
+    
+    onInit: function(component) {
+        this.callServer(
+            component,
+            "c.getInstructors",
+            function(response) {          
+                component.set('v.instructors', response);
+            } // function
+        ); // callserver
+        
+        this.callServer(
+            component,
+            "c.getLocationTypes",
+            function(response) {    
+                var opts = [];
+                for (var i=0; i<response.length; i++) {
+                    opts.push({
+                        label: response[i],
+                        value: response[i]
+                    });
+                }
+                component.set('v.reviewOptions',opts);
+            } // function
+        ); // callserver
+        
+        this.onChangeId(component);
+    }
+})
+
+<!-- NEW TripReports.cmp -->
+<aura:component >
+    
+    <aura:attribute name="mode" type="string" default="add" />
+    
+    <aura:if isTrue="{!v.mode == 'add'}">
+        <lightning:layout horizontalAlign="space" multipleRows="true">
+            <lightning:layoutItem flexibility="auto" padding="around-small" largeDeviceSize="8" mediumDeviceSize="7" smallDeviceSize="12" size="6">              
+                <c:TripReportForm aura:Id="myForm" />
+            </lightning:layoutItem>
+            <lightning:layoutItem flexibility="auto" padding="around-small" largeDeviceSize="4" mediumDeviceSize="5" smallDeviceSize="12" size="6">
+                <!-- exercise 7-3 -->        
+            </lightning:layoutItem>
+        </lightning:layout>
+        <aura:set attribute="else">
+            
+        </aura:set>      
+    </aura:if>
+    
+</aura:component>
+
+<!-- AwInstructorsNavigation.cmp -->
+<aura:component controller="AwInstructorsNavigation" extends="c:Base" >
+    
+    <aura:attribute name="certifications" type="Object[]" access="private" />
+    <aura:attribute name="onselect" type="Aura.Action" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <lightning:card title="Nav">
+        <lightning:verticalNavigation selectedItem="students" onselect="{!v.onselect}">
+            
+            <lightning:verticalNavigationSection label="Browse">
+                
+                <lightning:verticalNavigationItem label="Student Browser" name="students"/>
+                <lightning:verticalNavigationItem label="Trip Reports" name="tripreports"/>
+                
+            </lightning:verticalNavigationSection>
+            
+            <lightning:verticalNavigationSection label="Certification">                  
+                <lightning:verticalNavigationOverflow >
+                    <aura:iteration items="{!v.certifications}" var="cert">
+                        
+                        <lightning:verticalNavigationItem label="{!cert.Name}" 
+                                                          name="{!cert.Id + ',' + cert.Name}" /> 
+                        
+                    </aura:iteration>            
+                </lightning:verticalNavigationOverflow>
+            </lightning:verticalNavigationSection>
+
+        </lightning:verticalNavigation>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- AwInstructors.cmp -->
+<aura:component extends="c:Base"  implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+
+    <aura:attribute name="viewMode" type="String" access="private" default="students"/>
+    <aura:attribute name="certificationId" type="Id" access="private" />
+    <aura:attribute name="certificationLabel" type="String" access="private" />
+    
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler name="onnotification" event="c:Notification" action="{!c.onNotification}" />
+    
+    <lightning:layout horizontalAlign="space" multipleRows="true">
+        
+        <lightning:layoutItem padding="around-small" largeDeviceSize="2" mediumDeviceSize="3" smallDeviceSize="12"  size="12">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+        
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem padding="around-small" flexibility="auto"  largeDeviceSize="7" mediumDeviceSize="5" smallDeviceSize="12" size="6">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto"   largeDeviceSize="3" mediumDeviceSize="4" smallDeviceSize="12" size="4" padding="around-small">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                <lightning:layoutItem largeDeviceSize="10" mediumDeviceSize="9" smallDeviceSize="12"  padding="around-small" size="10">             
+                    <aura:if isTrue="{!v.viewMode == 'tripreports'}">
+                        
+                        <c:TripReports />   
+                        
+                        <aura:set attribute="else">
+                            
+                            <c:CertificationStudentList label="{!v.certificationLabel}" 
+                                                        certificationId="{!v.certificationId}" />
+                            
+                        </aura:set>
+                    </aura:if>
+                </lightning:layoutItem>
+            </aura:set>
+            
+        </aura:if>     
+    </lightning:layout>    
+</aura:component>
+
+<!-- AwInstructorsController.js -->
+({
+    onNavSelect: function(component,event,helper) {
+        var selectionName = event.getParam('name');
+        if (selectionName == 'students') {
+            component.set('v.viewMode','students');
+        } else if (selectionName == 'tripreports') {
+            component.set('v.viewMode','tripreports');
+        } else {
+            component.set('v.viewMode','certifications');
+            var key = selectionName.split(',');
+            component.set('v.certificationId',key[0]);
+            component.set('v.certificationLabel',key[1]);
+        }
+    },
+    
+    doInit: function(component,event,helper) {
+        helper.showToast(component,"Welcome","Don't forget to check back here for updated class schedules and assignments");  
+    },
+    
+    onNotification: function(component,event,helper) {
+        var notifService = component.find('notifLib');
+        var config = event.getParam('config');
+        if (event.getParam('type') == 'toast') {
+            notifService.showToast(config);
+        } else { 
+            // notification
+            notifService.showNotice(config);
+        }
+    }
+})

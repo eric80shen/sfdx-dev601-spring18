@@ -1,0 +1,33 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+
+    <lightning:verticalNavigation selectedItem="recent" onselect="{!c.selectItem}">
+        
+        <lightning:verticalNavigationSection label="Navigation Section">
+            <lightning:verticalNavigationItem label="Navigation Item 1" name="item1" title="item1"/>
+            <lightning:verticalNavigationItem label="Navigation Item 2" name="item2" title="item2"/>
+        </lightning:verticalNavigationSection>
+        
+        <lightning:verticalNavigationOverflow>
+            <lightning:verticalNavigationItem label="Navigation Item 3" name="item3" title="item3"/>
+            <lightning:verticalNavigationItem label="Navigation Item 4" name="item4" title="item4"/>
+        </lightning:verticalNavigationOverflow>
+        
+        <lightning:verticalNavigationItemBadge label="Navigation Item Badge" name="itembadge" 
+                                               title="itembadge" badgeCount="3" />
+
+        <lightning:verticalNavigationItemIcon label="Navigation Item Icon" name="itemiconclock" 
+                                              title="itemiconclock" iconName="utility:clock" />
+        <lightning:verticalNavigationItemIcon label="Navigation Item Icon" name="itemiconuser" 
+                                              title="itemiconuser" iconName="utility:user" />
+        
+    </lightning:verticalNavigation>
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+	selectItem : function(component, event, helper) {
+        alert('You selected: ' + event.getParam('name'));
+	}
+})

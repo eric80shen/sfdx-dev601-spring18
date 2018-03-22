@@ -1,0 +1,300 @@
+<!-- TestLDSCreateRecord.cmp -->
+<aura:component >
+    
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="newContact" type="Contact" />
+    <aura:attribute name="simpleNewContact" type="Contact" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <force:recordData aura:id="contactRecordCreator"
+                      layoutType="FULL"
+                      targetRecord="{!v.newContact}"
+                      targetFields="{!v.simpleNewContact}"
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="action:add_contact" title="Add Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Add Contact" onclick="{!c.addRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.simpleNewContact.FirstName}" required="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.simpleNewContact.LastName}" required="true"/>                    
+                </lightning:layoutItem>
+                <aura:if isTrue="{!not(empty(v.recordId))}">
+                    <lightning:layoutItem class="slds-m-bottom_small">     
+                        <lightning:input name="recordId" label="RecordId" 
+                                         value="{!v.recordId}" readonly="true"/>                  
+                    </lightning:layoutItem>
+                </aura:if>
+            </lightning:layout>
+        </div>
+        
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div class="recordError">
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- TestLDSCreateRecordController.js -->
+({
+    doInit : function(component, event, helper) {
+        // Prepare a new record from template
+        component.find("contactRecordCreator").getNewRecord(
+            "Contact", // sObject type (objectApiName)
+            null,      // recordTypeId
+            false,     // skip cache?
+            $A.getCallback(function() {
+                var rec = component.get("v.newContact");
+                var error = component.get("v.contactError");
+                if(error || (rec === null)) {
+                    console.log("Error initializing record template: " + error);
+                    return;
+                }
+                console.log("Record template initialized: " + rec.sobjectType);
+            })
+        );  
+    },
+    
+    addRecord : function(component, event, helper) {
+        component.find("contactRecordCreator").saveRecord(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {
+                component.set('v.recordId', saveResult.recordId);
+                // record is saved successfully
+                var resultsToast = $A.get("e.force:showToast");
+                resultsToast.setParams({
+                    "title": "Saved",
+                    "message": "The record was saved."
+                });
+                resultsToast.fire();
+            } else {
+                console.log('Error, state: ' + saveResult.state + ', error: ' + JSON.stringify(saveResult.error));
+            }
+        });
+    }
+})
+
+<!-- TestLDSGetRecord.cmp -->
+<aura:component >
+    
+    <aura:attribute name="contactRecord" type="Contact" />
+    <aura:attribute name="recordId" type="id" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <force:recordData aura:id="loadrecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.contactRecord}"
+                      fields="Id, FirstName, LastName" 
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="standard:contact" title="Get Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Get Contact" onclick="{!c.getRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="recordId" label="Enter Record Id"
+                                     value="{!v.recordId}" required="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.contactRecord.FirstName}" readonly="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.contactRecord.LastName}" readonly="true"/>                    
+                </lightning:layoutItem>                
+            </lightning:layout>
+        </div>
+        
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div>
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>
+        
+    </lightning:card>
+    
+</aura:component>
+
+<!-- TestLDSGetRecordController.js -->
+({
+    getRecord : function(component, event, helper) {
+        component.find('loadrecord').reloadRecord();        
+    }
+})
+
+<!-- TestLDSUpdateRecord.cmp -->
+<aura:component >
+    
+    <aura:attribute name="contactRecord" type="Contact" />
+    <aura:attribute name="recordId" type="id" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <force:recordData aura:id="editrecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.contactRecord}"
+                      fields="Id, FirstName, LastName"
+                      mode="EDIT" 
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="standard:contact" title="Update Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Update Contact" onclick="{!c.updateRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="recordId" label="Enter Record Id"
+                                     value="{!v.recordId}" required="true" onchange="{!c.loadRecord}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.contactRecord.FirstName}" required="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.contactRecord.LastName}" required="true"/>                    
+                </lightning:layoutItem>                
+            </lightning:layout>
+        </div>
+
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div>
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>        
+        
+    </lightning:card>    
+    
+</aura:component>
+
+<!-- TestLDSUpdateRecordController.js -->
+({
+    loadRecord : function(component, event, helper) {
+        component.find('editrecord').reloadRecord();        
+    },
+    
+    updateRecord : function(component, event, helper) {
+        component.find("editrecord").saveRecord($A.getCallback(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {
+                // record is updated successfully
+                var resultsToast = $A.get("e.force:showToast");
+                resultsToast.setParams({
+                    "title": "Updated",
+                    "message": "The record was updated."
+                });
+                resultsToast.fire();
+            } else {
+                console.log('Unknown problem, state: ' + saveResult.state + ', error: ' + JSON.stringify(saveResult.error));
+            }
+        }));
+    }
+})
+
+<!-- TestLDSDeleteRecord.cmp -->
+<aura:component >
+    
+    <aura:attribute name="contactRecord" type="Contact" />
+    <aura:attribute name="recordId" type="id" />
+    <aura:attribute name="contactError" type="String" />
+    
+    <force:recordData aura:id="deleterecord"
+                      recordId="{!v.recordId}"
+                      targetFields="{!v.contactRecord}"
+                      fields="Id, FirstName, LastName" 
+                      targetError="{!v.contactError}" />
+    
+    <lightning:card iconName="standard:contact" title="Delete Contact record">   
+        <aura:set attribute="actions">
+            <lightning:button label="Delete Contact" onclick="{!c.deleteRecord}"/>
+        </aura:set>
+        <div class="slds-p-horizontal_medium">    
+            <lightning:layout class="slds-grid_vertical slds-p-horizontal_medium">
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="recordId" label="Enter Record Id"
+                                     value="{!v.recordId}" required="true" onchange="{!c.loadRecord}"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">
+                    <lightning:input name="firstName" label="First Name"
+                                     value="{!v.contactRecord.FirstName}" readonly="true"/>
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-m-bottom_small">     
+                    <lightning:input name="lastname" label="Last Name"
+                                     value="{!v.contactRecord.LastName}" readonly="true"/>                    
+                </lightning:layoutItem>                
+            </lightning:layout>
+        </div>
+
+        <!-- Display Lightning Data Service errors -->
+        <aura:if isTrue="{!not(empty(v.contactError))}">
+            <div>
+                <ui:message title="Error" severity="error" closable="true">
+                    {!v.contactError}
+                </ui:message>
+            </div>
+        </aura:if>        
+        
+    </lightning:card>   
+    
+</aura:component>
+
+<!-- TestLDSDeleteRecordController.js -->
+({
+    loadRecord : function(component, event, helper) {
+        component.find('deleterecord').reloadRecord();      
+    },
+    
+    deleteRecord : function(component, event, helper) {
+        component.find("deleterecord").deleteRecord($A.getCallback(function(saveResult) {
+            if (saveResult.state === "SUCCESS" || saveResult.state === "DRAFT") {
+                // record is deleted successfully
+                var resultsToast = $A.get("e.force:showToast");
+                resultsToast.setParams({
+                    "title": "Deleted",
+                    "message": "The record was deleted."
+                });
+                resultsToast.fire();
+            } else {
+                console.log('Unknown problem, state: ' + saveResult.state + ', error: ' + JSON.stringify(saveResult.error));
+            }
+        }));
+    }
+})
+
+<!-- TestCmp.cmp 
+
+Deploy to App Page
+
+-->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <c:TestLDSCreateRecord />
+    
+    <c:TestLDSGetRecord />
+    
+    <c:TestLDSUpdateRecord />
+    
+    <c:TestLDSDeleteRecord />
+    
+</aura:component>

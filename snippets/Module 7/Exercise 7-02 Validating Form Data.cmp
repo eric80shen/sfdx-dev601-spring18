@@ -1,0 +1,252 @@
+<!--
+
+Implement business rules such that a user may not submit the form unless the Student Name field contains at least one non-blank character. 
+
+Tasks:
+1. Add Required field validation to fields:
+   - Select Instructor
+   - Location Name
+   - Date Visited
+   - Review Type
+2. Automatically enable/disable the Save button.
+
+-->
+
+<!-- TripReportForm.cmp -->
+<aura:component extends="c:Base" controller="TripReportForm">
+    <aura:attribute name="Id" type="String" access="public" default="" description="Id for Trip Report" />
+    <aura:attribute name="objReport" type="Object" access="private" description="Target for force:recordData" />
+    <aura:attribute name="objReportFields" type="Object" access="private" description="Target fields for force:recordData" />
+    <aura:attribute name="objReportError" type="String" access="private" description="Error message for force:recordData exception handling" />
+    <aura:attribute name="instructors" type="User[]" access="private" />
+    <aura:attribute name="reviewOptions" type="Object[]" access="private"/>
+    <aura:attribute name="validateFields" type="String[]" access="private"
+                    default="instructorId,locationName,dateVisited,reviewType" />
+
+    <aura:registerEvent name="ontripreportmodechange"  type="c:TripReportModeChange"/>
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.Id}" action="{!c.onChangeId}" />   
+
+    <aura:if isTrue="{!empty(v.Id)}">
+        <force:recordData aura:id="recordOps" 
+                          targetRecord="{!v.objReport}"
+                          targetFields="{!v.objReportFields}"
+                          targetError="{!v.objReportError}"
+                          mode="EDIT"      
+                          fields="Name,Instructor__c,Date__c,Rating__c,Review__c,ReviewType__c" />
+        <aura:set attribute="else">
+            <force:recordData aura:id="recordOps" 
+                              recordId="{!v.Id}"
+                              targetRecord="{!v.objReport}"
+                              targetFields="{!v.objReportFields}"
+                              targetError="{!v.objReportError}"
+                              mode="EDIT"
+                              fields="Name,Instructor__c,Date__c,Rating__c,Review__c,ReviewType__c"
+                              recordUpdated="{!c.onBlur}" />
+        </aura:set>
+    </aura:if>
+
+    <aura:if isTrue="{!not(empty(v.objReportError))}">
+        <div>
+            <ui:message title="Error" severity="error" closable="true">
+                {!v.objReportError}
+            </ui:message>
+        </div>
+    </aura:if>     
+
+    <lightning:card title="{!empty(v.Id) ? 'Add Trip Report' : 'Edit Trip Report'}">
+        <form class="slds-form—stacked" style="margin: 10px">
+            
+            <lightning:select label="Select Instructor" 
+                              name="instructor" 
+                              value="{!v.objReportFields.Instructor__c}" 
+                              required="true"
+                              aura:id="instructorId"
+                              onblur="{!c.onBlur}">
+                <option value="">Select Instructor</option>
+                <aura:iteration items="{!v.instructors}" var="instructor">
+                    <option value="{!instructor.Id}">
+                        {!instructor.Name}
+                    </option>
+                </aura:iteration>
+            </lightning:select>
+            
+            <lightning:input type="text" 
+                             name="Name" 
+                             label="Location Name" 
+                             value="{!v.objReportFields.Name}" 
+                             required="true" 
+                             aura:id="locationName"
+                             onblur="{!c.onBlur}" />
+            <lightning:input name="date" 
+                             type="date" 
+                             label="Date Visited" 
+                             value="{!v.objReportFields.Date__c}" 
+                             required="true"
+                             aura:id="dateVisited"
+                             onblur="{!c.onBlur}" />
+            <lightning:radioGroup type="button"
+                                  label="Review of:"
+                                  options="{!v.reviewOptions}"
+                                  name="reviewType"
+                                  value="{!v.objReportFields.ReviewType__c}" 
+                                  required="true"
+                                  aura:id="reviewType"
+                                  onblur="{!c.onBlur}" />
+            <lightning:slider label="Quality Rating"
+                              step="1"
+                              min="1"
+                              max="5"
+                              title="Higher score indicates higher quality"
+                              value="{!v.objReportFields.Rating__c}" />
+            Review:
+            <br />
+            <lightning:inputRichText disabledCategories="FORMAT_FONT" value="{!v.objReportFields.Review__c}"/>
+
+            <div class="slds-text-align_center" style="margin-top:5px">
+                <lightning:button variant="Brand" label="Save" aura:id="btnSubmit" 
+                                  onclick="{!c.onSave}" disabled="true"/>
+                <lightning:button label="Cancel" />
+            </div>
+
+        </form>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- TripReportFormController.js -->
+({
+    doInit : function(component, event, helper) {
+        helper.onInit(component,event,helper);
+    },
+    
+    onChangeId: function(component,event,helper) {
+        helper.onChangeId(component);  
+    },
+    
+    onSave: function(component,event,helper) {
+        
+        var service = component.find("recordOps");
+        
+        var obj = component.get('v.objReportFields');
+        
+        // lightning:radioGroup sometimes encodes the value in an array
+        // so we need to convert the array value to a simple value 
+        // before saving
+        if (Array.isArray(obj.ReviewType__c) && obj.ReviewType__c.length == 1 ) {
+            obj.ReviewType__c = obj.ReviewType__c[0];
+            component.set('v.objReportFields',obj);
+        }
+
+        service.saveRecord(function(saveResult) {
+            
+            if (saveResult.state === "SUCCESS" || 
+                saveResult.state === "DRAFT") {
+                
+                // record is saved successfully
+                
+                helper.showToast(component,"Transaction Complete","Your Trip Report was Saved.",null,"success");
+                
+                
+                var compEvent = component.getEvent("ontripreportmodechange");
+                compEvent.setParams({"mode" : "view", "id" : component.get('v.Id') });
+                compEvent.fire();   
+                
+            } else if (saveResult.state === "INCOMPLETE") {
+                // handle the incomplete state
+                component.set('v.objReportError','User is offline, device doesn\'t support drafts.');                    
+            } else if (saveResult.state === "ERROR") {
+                component.set('v.objReportError','Problem saving record, error: ' + JSON.stringify(saveResult.error));             
+            } else {
+                alert('Unknown problem, state: ' + saveResult.state);
+            }
+        });
+    },
+    
+    onBlur : function(component,event,helper) {
+        if (helper.validateFields(component)) {
+            component.find('btnSubmit').set('v.disabled',false);
+        } else {
+            component.find('btnSubmit').set('v.disabled',true);
+        } 
+    }
+})
+
+<!-- TripReportFormHelper.js -->
+({
+    onChangeId: function(component) {
+        
+        var Id = component.get('v.Id');
+        var recordOps = component.find("recordOps");
+        if (recordOps && recordOps.getNewRecord && (Id == '' || !Id)) {
+            recordOps.getNewRecord(
+                "TripReport__c", // sObject type (objectApiName)
+                null,      // recordTypeId
+                false,     // skip cache?
+                $A.getCallback(function() {
+                    var rec = component.get("v.objReport");
+                    var error = component.get("v.objReportError");
+                    if(error || (rec === null)) {
+                        console.log("Error initializing record: " + error);
+                        return;
+                    }
+                    component.set('v.objReportFields.Rating__c', 1); // Sets slider to 1
+                    console.log("Record initialized: ",rec);
+                })
+            );
+        }
+    },
+    
+    onInit: function(component) {
+        this.callServer(
+            component,
+            "c.getInstructors",
+            function(response) {          
+                component.set('v.instructors', response);
+            } // function
+        ); // callserver
+        
+        this.callServer(
+            component,
+            "c.getLocationTypes",
+            function(response) {    
+                var opts = [];
+                for (var i=0; i<response.length; i++) {
+                    opts.push({
+                        label: response[i],
+                        value: response[i]
+                    });
+                }
+                component.set('v.reviewOptions',opts);
+            } // function
+        ); // callserver
+        
+        this.onChangeId(component);
+    },
+    
+    validateFields : function(component) {
+        var field = null;
+        var fields = component.get('v.validateFields');
+        var validity = null;
+        var result = true;
+        
+        for (var i=0; i<fields.length; i++) {
+            field = component.find(fields[i]);
+            validity = field.get('v.validity');
+            if (typeof validity == 'object') {
+                if (validity.badInput || 
+                    validity.patternMismatch || 
+                    validity.rangeOverflow || 
+                    validity.rangeUnderflow ||
+                    validity.stepMismatch || 
+                    validity.tooLong || 
+                    validity.typeMismatch || 
+                    validity.valueMissing) {
+                    result = false;
+                }
+            }
+        }
+        return result;
+    }
+})

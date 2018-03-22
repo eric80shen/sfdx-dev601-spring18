@@ -1,0 +1,43 @@
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <p><strong>Grid System Building Blocks - Lightning layout</strong></p>
+    <lightning:layout horizontalAlign="space" class="slds-box">
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 1</lightning:layoutItem>
+        <lightning:layoutItem flexibility="grow" class="slds-box">This is Column 2</lightning:layoutItem>
+    </lightning:layout> 
+
+    <br/><p><strong>Manually sizing columns with SLDS</strong></p>
+    <div class="slds-grid slds-wrap slds-box">
+        <header class="slds-col slds-size_1-of-1 slds-box">Header</header>
+        <nav class="slds-col slds-size_3-of-12 slds-box">Nav</nav>
+        <div class="slds-col slds-size_6-of-12 slds-box">Body</div>
+        <aside class="slds-col slds-size_3-of-12 slds-box">Aside</aside>
+        <footer class="slds-col slds-size_1-of-1 slds-box">Footer</footer>
+    </div>
+    <p><strong>Manually sizing columns with lightning:layout</strong></p>
+    <lightning:layout class="slds-wrap slds-box">
+        <lightning:layoutItem class="slds-align-top slds-box" size="12">Header</lightning:layoutItem>
+        <lightning:layoutItem size="3" class="slds-box">Nav</lightning:layoutItem>
+        <lightning:layoutItem size="6" class="slds-box">Body</lightning:layoutItem>
+        <lightning:layoutItem size="3" class="slds-box">Aside</lightning:layoutItem>
+        <lightning:layoutItem size="12" class="slds-box">Bottom Align</lightning:layoutItem>
+    </lightning:layout>
+
+    <br/><p><strong>Implementing a responsive design with SLDS</strong></p>
+    <div class="slds-grid slds-wrap slds-box">
+        <header class="slds-col slds-size_1-of-1 slds-box">Header</header>
+        <nav class="slds-col slds-size_3-of-12 slds-medium-size_1-of-1 slds-box">Nav</nav>
+        <div class="slds-col slds-size_6-of-12 slds-medium-size_3-of-4 slds-box">Body</div>
+        <aside class="slds-col slds-size_3-of-12 slds-medium-size_1-of-4 slds-box">Aside</aside>
+        <footer class="slds-col slds-size_1-of-1 slds-box">Footer</footer>
+    </div>
+    <p><strong>Implementing a responsive design with Lightning Layout</strong></p>
+    <lightning:layout class="slds-wrap slds-box">
+        <lightning:layoutItem size="12" class="slds-box">Header</lightning:layoutItem>
+        <lightning:layoutItem size="12" smallDeviceSize="3" mediumDeviceSize="12" class="slds-box">Nav</lightning:layoutItem>
+        <lightning:layoutItem size="9" smallDeviceSize="6" mediumDeviceSize="9" class="slds-box">Body</lightning:layoutItem>
+        <lightning:layoutItem size="3" smallDeviceSize="3" mediumDeviceSize="3" class="slds-box">Aside</lightning:layoutItem>
+        <lightning:layoutItem size="12" class="slds-box">Footer</lightning:layoutItem>
+    </lightning:layout>
+
+</aura:component>

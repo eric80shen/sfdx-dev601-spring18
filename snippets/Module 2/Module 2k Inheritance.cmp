@@ -1,0 +1,32 @@
+<!-- wrapInBox.cmp -->
+<aura:component extensible="true">
+    
+    <aura:attribute name="message" type="String" default="Default Message" />
+    
+    <p>{!v.message}</p>
+    
+    <div style="border:1px solid black">
+        {!v.body}   
+    </div>
+
+</aura:component>
+
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" extends="c:wrapInBox">
+    
+    <aura:set attribute="message" value="Hello from TestCmp" />
+    
+    <p>Hello Simon</p>
+    
+</aura:component>
+
+<!-- TestApp.app -->
+<aura:application access="global" extends="force:slds">
+
+    <c:TestCmp />
+    
+    <c:wrapInBox >
+        <p>Hello World</p>
+    </c:wrapInBox>
+    
+</aura:application>

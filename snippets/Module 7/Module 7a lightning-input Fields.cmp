@@ -1,0 +1,166 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    <aura:attribute name="name" type="String" default="Enter name (required)" />
+    <aura:attribute name="password" type="String" default="password" />
+    <aura:attribute name="email" type="String" default="trainingEMEA@salesforce.com" />
+    <aura:attribute name="blog" type="String" default="http://www.salesforce.com" />
+    <aura:attribute name="phone" type="String" default="555-555-1212" />
+    <aura:attribute name="bonus" type="Decimal" default="2000.23" />
+    <aura:attribute name="dob" type="String" default="2016-11-13" />
+    <aura:attribute name="comments" type="String" default="Enter some comments..." />
+    <aura:attribute name="checked" type="Boolean" default="false" />
+    <aura:attribute name="selectedOption" type="String" default="Option 2" />
+    <aura:attribute name="month" type="String" default="2017-01" />
+    <aura:attribute name="week" type="String" default="2017-W01" />
+    <aura:attribute name="setting" type="Integer" default="5" />
+    <aura:attribute name="richtext" type="String" default="lightning:inputRichText" />
+    <aura:attribute name="options" type="List" 
+                    default="[{'label': 'Hotel', 'value': 'Hotel'},
+                             {'label': 'Restaurant', 'value': 'Restaurant'},
+                             {'label': 'Students', 'value': 'Students'},
+                             {'label': 'Training Center', 'value': 'Training Center'}]"/>
+    <aura:attribute name="value" type="String" default="Hotel"/>    
+    
+    <div style="margin: 50px">
+        <lightning:layout class="slds-form_stacked">
+            <lightning:layoutItem size="4">
+                <lightning:input type="text" name="name" aura:id="name" label="lightning:input type=text" value="{!v.name}" required="true"/>
+                <lightning:input type="password" name="password" aura:id="password" label="lightning:input type=password" value="{!v.password}"/>
+                <lightning:input type="email" name="email" aura:id="email" label="lightning:input type=email" value="{!v.email}"/>                
+                <lightning:input type="tel" name="phone" aura:id="phone" label="lightning:input type=tel" value="{!v.phone}"/>
+                <lightning:input name="blog" type="url" aura:id="blog" label="lightning:input type=url" value="{!v.blog}" />
+                <lightning:input name="bonus" type="number" aura:id="bonus" step="any" label="lightning:input type=number" value="{!v.bonus}"/>
+                <lightning:input name="bonus" type="number" aura:id="bonus" step="any" label="lightning:input type=number formatter=currency" value="{!v.bonus}" formatter="currency"/>
+                <lightning:textarea name="myTextArea" value="{!v.comments}" label="lightning:textarea"  />
+                <lightning:input name="dob" type="date" aura:id="dob" label="lightning:input type=date" value="{!v.dob}"/>
+                <lightning:button label="Set to Today" onclick="{!c.setDateToToday}"/>
+                <lightning:input type="search" label="lightning:input type=search" aura:id="search" name="search" placeholder="Search"/>
+                <lightning:button label="Submit" onclick="{!c.submit}"/>
+                <lightning:input type="month" label="lightning:input type=month" name="month" value="{!v.month}" />
+                <lightning:input type="week" label="lightning:input type=week" name="week" value="{!v.week}" />
+                <lightning:input type="range" label="lightning:input type=range" name="number" min="0" max="10" value="{!v.setting}"/>
+                 You entered: {!v.setting}
+                <lightning:inputRichText value="{!v.richtext}" />
+                
+                <br/><strong>lightning:input type=checkbox - Select Toppings</strong>
+                <lightning:input type="checkbox" aura:id="toppings" label="Pepperoni" name="toppings" value="1"/>
+                <lightning:input type="checkbox" aura:id="toppings" label="Tomato" name="toppings" value="2" checked="true"/>
+                <lightning:input type="checkbox" aura:id="toppings" label="Onion" name="toppings" value="3"/>
+                <lightning:button label="What toppings did you select?" onclick="{!c.whatChecked}"/>
+
+                <br/><br/><strong>lightning:input type=radio - Select Premium Topping</strong><br/>
+                <strong>Bug here - does not clear the checked flag</strong>
+                <lightning:input type="radio" label="Pepperoni" name="toppingsr" value="1" aura:id="toppingsr"/>
+                <lightning:input type="radio" label="Tomato" name="toppingsr" value="2" aura:id="toppingsr"/>
+                <lightning:input type="radio" label="Onion" name="toppingsr" value="3" aura:id="toppingsr"/>
+                <lightning:button label="What premium topping did you select?" onclick="{!c.whatSelected}"/>   
+
+                <br/><br/><strong>lightning:input type=toggle</strong>
+                <fieldset>
+                    <legend>Operational Status</legend>             
+                    <lightning:input type="toggle" label="Warp Drive" name="status" value="Warp Drive" checked="true" aura:id="status"/> 
+                    <lightning:input type="toggle" label="Phasers" name="status" value="Phasers" aura:id="status"/>
+                    <lightning:input type="toggle" label="Photon Torpedoes" name="status" value="Photon Torpedoes" aura:id="status"/>
+                </fieldset>
+                <lightning:button label="Check status" onclick="{!c.checkStatus}"/> 
+                
+                <br/><br/><strong>lightning:radioGroup</strong>
+                <lightning:radioGroup aura:id="mygroup"
+                                      name="radioButtonGroup"
+                                      label="Review Of"
+                                      options="{!v.options}"
+                                      value="{!v.value}"
+                                      onchange="{!c.handleChange}"
+                                      required="true" />
+                <br/>
+                <lightning:radioGroup type="button" label="Type Button"
+                                      name="radioButtonGroup2"
+                                      options="{!v.options}"               
+                                      value="{!v.value}"
+                                      onchange="{!c.handleChange}"/>                                      
+
+            </lightning:layoutItem>
+        </lightning:layout>      
+    </div>  
+   
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    setDateToToday : function(component, event, helper) {
+        //event.preventDefault();
+        
+        var date = new Date();
+        
+        var day = date.getDate();
+        var month = date.getMonth() + 1;
+        var year = date.getFullYear();
+        
+        if (month < 10) month = "0" + month;
+        if (day < 10) day = "0" + day;
+        
+        var today = year + "-" + month + "-" + day;
+
+        component.find('dob').set('v.value',today);
+    },
+    whatChecked: function(component,event,helper) {
+        
+        //event.preventDefault();
+        var result = [];
+        var toppings = component.find("toppings");
+        
+        for (var i=0; i<toppings.length; i++) {
+            if (toppings[i].get("v.checked")) {
+                result.push(toppings[i].get('v.value'));
+            }
+        }
+        
+        alert("You selected: " + result.join(','));
+    },
+    whatSelected: function(component,event,helper) {
+        
+        //event.preventDefault();
+        var result = [];
+        var toppingsr = component.find("toppingsr");
+        
+        debugger;
+        
+        for (var i=0; i<toppingsr.length; i++) {
+            if (toppingsr[i].get("v.checked")) {
+                alert("You chose: " + toppingsr[i].get('v.value'));
+                break;
+            }
+        }
+    },
+    checkStatus: function(component,event,helper) {
+        
+        //event.preventDefault();
+        var result = [];
+        var status = component.find("status");
+        
+        for (var i=0; i<status.length; i++) {
+            if (status[i].get("v.checked")) {
+                result.push(status[i].get('v.value'));
+            }
+        }
+        
+        alert("You selected: " + result.join(','));
+    },
+    submit: function(component,event,helper) {
+        var search = component.find("search");
+        alert('You are searching for ' + search.get('v.value'));
+    },
+    handleChange: function(component,event,helper) {
+        var changeValue = event.getParam("value");
+        alert(changeValue);   
+    }
+})
+
+<!-- TestCmp.css -->
+.THIS fieldset > legend {
+    margin-bottom: 10px;
+}
+
+.THIS fieldset .slds-form-element__label {
+    width: 150px;
+}

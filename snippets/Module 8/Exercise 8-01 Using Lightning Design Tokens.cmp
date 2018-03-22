@@ -1,0 +1,32 @@
+<!--
+
+Use Lightning Design Tokens to theme your application components.
+
+Tasks:
+1. Create a Token Bundle
+2. Define a Token
+3. Use a Token
+
+-->
+
+<!-- NEW defaultTokens.tokens
+
+Description: Default tokens for the org
+
+-->
+<aura:tokens extends="force:base">
+    
+	<aura:token name="myGridFont" value="Comic Sans MS" />
+    
+</aura:tokens>
+
+<!-- DataGridTable.css -->
+@media (max-width: 767px) {
+    .THIS .hiddenColumn {
+        display: none !important;
+    }
+}
+
+.THIS.slds-table td {
+    font-family: t(myGridFont);
+}

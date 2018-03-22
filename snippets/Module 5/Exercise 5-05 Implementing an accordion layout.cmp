@@ -1,0 +1,162 @@
+<!--
+
+Add an accordion layout to the StudentDetail component that displays a student's past courses and certifications.
+
+Tasks:
+1. Create the Apex Class
+2. Create the StudentDetailAccordion Component
+3. Fetch the Data
+4. Output the Datasets in the Accordion
+
+-->
+
+<!-- NEW Apex Class -->
+public with sharing class StudentDetailAccordion {
+    
+    @AuraEnabled
+    public static List<Certification_Held__c > getCertificationsForStudent(Id contactId) {
+        return [SELECT Date_Achieved__c,
+                Certification__r.Name
+                FROM Certification_Held__c
+                WHERE Certified_Professional__c = :contactId];
+    }
+}
+
+<!-- UPDATE Apex Class -->
+public with sharing class StudentDetail {
+
+    @AuraEnabled 
+    public static List<Course_Attendee__c> getNotesByStudent(String contactId) {
+        return [SELECT Id, InstructorNotes__c, Course_Delivery__r.Start_Date__c, 
+                       Course_Delivery__r.Course__r.Name, Status__c
+				FROM Course_Attendee__c
+            	WHERE Student__c = :contactId];
+    }   
+}
+
+<!-- NEW StudentDetailAccordion.cmp -->
+<aura:component extends="c:Base" controller="StudentDetailAccordion">
+    
+    <aura:attribute name="contactId" type="Id" access="public"/>
+    <!--<aura:attribute name="courses" type="Object[]" access="public"/>-->
+    <aura:attribute name="courses" type="Course_Attendee__c[]" access="public"/>
+    <aura:attribute name="certs" type="Object[]" access="private"/>
+    
+    <aura:handler name="change" value="{!v.contactId}" action="{!c.onContactIdChange}"/>
+
+    <lightning:accordion>
+        
+        <lightning:accordionSection label="Courses" name="courses">
+             <aura:iteration items="{!v.courses}" var="thisCourse">
+                 <!-- Commented out because courses is of type Course_Attendee__c[] in my solution
+                 <lightning:tile label="{!thisCourse.startDate + ' - ' + 
+                                        thisCourse.courseName}"
+                                 class="slds-tile_board">
+				 -->      
+                 <lightning:tile label="{!thisCourse.Course_Delivery__r.Start_Date__c + ' - ' + 
+                                        thisCourse.Course_Delivery__r.Course__r.Name}"
+                                 class="slds-tile_board">
+                     <aura:set attribute="media">
+                         <lightning:icon iconName="standard:event"/>
+                     </aura:set>
+                     <!--{!thisCourse.status}-->
+                     {!thisCourse.Status__c}
+                 </lightning:tile>
+            </aura:iteration>
+        </lightning:accordionSection>
+        
+        <lightning:accordionSection label="Certifications" name="certifications">
+            <aura:iteration items="{!v.certs}" var="thisCert">
+                <lightning:tile label="{!thisCert.Date_Achieved__c + ' - ' + thisCert.Certification__r.Name}" 
+                                class="slds-tile_board">
+                    <aura:set attribute="media">
+                        <lightning:icon iconName="standard:event"/>
+                    </aura:set>
+                </lightning:tile>
+            </aura:iteration>
+        </lightning:accordionSection>
+
+    </lightning:accordion>
+
+</aura:component>
+
+<!-- StudentDetailAccordionController.js -->
+({
+	onContactIdChange  : function(component, event, helper) {
+        helper.callServer(
+            component,
+            "c.getCertificationsForStudent",
+            function(response) {  
+                component.set('v.certs', response);
+            },
+            {
+                contactId : component.get('v.contactId')
+            }
+        );
+	}
+})
+
+<!-- StudentDetail.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base" controller="StudentDetail">
+    
+    <aura:attribute name="contactId" access="private" type="String" />
+    <aura:attribute name="courseDeliveryId" access="private" type="String" />
+    <aura:attribute name="contact" access="public" type="Contact" />
+    <aura:attribute name="recordError" access="private" type="String" />
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="private" />
+    <!--<aura:attribute name="history" access="private" type="Object[]" />-->
+        
+    <aura:handler event="c:AwInstructorsStudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.contactId}"
+                      targetFields="{!v.contact}"
+                      targetError="{!v.recordError}"
+                      fields="Name,Email,Phone,Description" />
+    
+    <aura:if isTrue="{!v.contactId != null}">
+        <lightning:card title="{!v.contact.Name}">
+            <aura:set attribute="actions">
+                <lightning:button label="Go to Record" onclick="{!c.goToRecord}"/>
+            </aura:set>
+            <lightning:layout >
+                <lightning:layoutItem padding="around-small">
+                    <lightning:formattedEmail value="{!v.contact.Email}" />
+                    <br/>
+                    <lightning:formattedPhone value="{!v.contact.Phone}" />
+                    <br/>
+                    <lightning:formattedText value="{!v.contact.Description}" />
+                    
+                    <c:StudentDetailAccordion courses="{!v.history}" contactId="{!v.contactId}" />
+                    
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:card>
+        <br/>
+        <lightning:tabset >
+            <lightning:tab label="HISTORY">
+                <lightning:layout >
+                    <lightning:layoutItem padding="around-small">
+                        <aura:if isTrue="{! !empty(v.history)}">
+                            <c:StudentHistory history="{!v.history}" />
+                            <aura:set attribute="else">
+                                The student has not registered for any courses.
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:tab>
+            <aura:if isTrue="{! !empty(v.history) }">
+                <lightning:tab label="EDIT NOTES">
+                    <lightning:layout >
+                        <lightning:layoutItem padding="around-small">
+                            <c:EditStudentNote history="{!v.history}" />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:tab>            
+            </aura:if>
+        </lightning:tabset>
+    </aura:if>
+    
+</aura:component>

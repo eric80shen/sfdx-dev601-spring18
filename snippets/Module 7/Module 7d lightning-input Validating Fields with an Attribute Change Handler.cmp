@@ -1,0 +1,31 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    <aura:attribute name="firstName" type="String" access="global" default="Enter a name..." />
+    <aura:attribute name="errors" type="String" access="private" default="" />
+    
+    <aura:handler name="change" value="{!v.firstName}" action="{!c.validateRequiredData}" /> 
+    
+    <div class="slds-box slds-size--1-of-3" style="margin: 50px">
+
+        <lightning:input type="text" name="firstName" label="First Name" value="{!v.firstName}" />
+        
+        <div aura:id="errorMessageBox">{!v.errors}</div>
+        
+        <lightning:button label="Submit" aura:id="btnSubmit" />
+ 
+    </div>
+   
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    validateRequiredData: function(cmp,event,helper) {
+        if (cmp.get('v.firstName') == '') {
+            cmp.find("btnSubmit").set('v.disabled',true);
+            cmp.set('v.errors',"You must enter a name");
+        } else {
+            cmp.set('v.errors',"");
+            cmp.find("btnSubmit").set('v.disabled',false);
+        }
+    }
+})

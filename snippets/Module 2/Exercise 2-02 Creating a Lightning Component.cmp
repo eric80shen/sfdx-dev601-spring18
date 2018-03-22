@@ -1,0 +1,42 @@
+<!-- 
+
+Enable Debug Mode got Lightning Components. 
+Create a Lightning Component and Lightning Page that can be run from Salesforce1
+
+Tasks:
+1. Define a Component that is Surfaced in Lightning App Builder
+2. Define the Student Browser Form Component
+3. Invoke the Student Browser Form Component
+4. Deploy the Student Browser Component as a Custom Tab in Lightning Experience.
+
+-->
+
+<!-- NEW StudentBrowserForm.cmp -->
+<aura:component >
+    
+	<h1>Filter form goes here</h1>
+    
+</aura:component>
+
+<!-- NEW StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+	
+    <c:StudentBrowserForm />
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	Photo gallery of students goes here
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- 
+
+Create an App page called AwInstructors (Header and Right Sidebar)
+StudentBrowser component in bottom left
+Chatter Feed in bottom right
+
+Add page to LEX and SF1 and test
+
+-->

@@ -1,0 +1,95 @@
+<!-- Lab Phase 3 
+
+•	Create a new component named StudentHistory
+•	Invoke StudentHistory in the History tab of StudentDetail.cmp, passing the history object as an attribute.
+•	In the StudentHistory component, iterate through the history array, generating lightning:tile instances. Hint: Use the lightning:formattedRichText component to output the instructorNotes field.
+
+-->
+
+<!-- NEW StudentHistory.cmp -->
+<aura:component >
+    
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="public" />
+    <!--<aura:attribute name="history" type="Object[]" access="public" />-->
+    
+    <aura:iteration items="{!v.history}" var="historyItem">
+        <lightning:tile label="{!historyItem.Course_Delivery__r.Start_Date__c + ' - ' + historyItem.Course_Delivery__r.Course__r.Name}" 
+                        class="slds-tile_board">
+            <aura:set attribute="media">
+                <lightning:icon iconName="standard:record"/>
+            </aura:set>
+            <lightning:formattedRichText value="{!historyItem.InstructorNotes__c}" />
+        </lightning:tile>
+        <!--
+        <lightning:tile label="{!historyItem.startDate + ' - ' + historyItem.courseName}" class="slds-tile_board">
+            <aura:set attribute="media">
+                <lightning:icon iconName="standard:record" />
+            </aura:set>
+            <lightning:formattedRichText value="{!historyItem.instructorNotes}" />
+        </lightning:tile>
+        -->
+    </aura:iteration>
+    
+</aura:component>
+
+<!-- StudentDetail.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base" controller="StudentDetail">
+    
+    <aura:attribute name="contactId" access="private" type="String" />
+    <aura:attribute name="courseDeliveryId" access="private" type="String" />
+    <aura:attribute name="contact" access="public" type="Contact" />
+    <aura:attribute name="recordError" access="private" type="String" />
+    <aura:attribute name="history" type="Course_Attendee__c[]" access="private" />
+    <!--<aura:attribute name="history" access="private" type="Object[]" />-->
+    
+    <aura:handler event="c:AwInstructorsStudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.contactId}"
+                      targetFields="{!v.contact}"
+                      targetError="{!v.recordError}"
+                      fields="Name,Email,Phone,Description" />
+    
+    <aura:if isTrue="{!v.contactId != null}">
+        <lightning:card title="{!v.contact.Name}">
+            <aura:set attribute="actions">
+                <lightning:button label="Go to Record" onclick="{!c.goToRecord}"/>
+            </aura:set>
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small">
+                    <lightning:formattedEmail value="{!v.contact.Email}" />
+                    <br/>
+                    <lightning:formattedPhone value="{!v.contact.Phone}" />
+                    <br/>
+                    <lightning:formattedText value="{!v.contact.Description}" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:card>
+        <br/>
+        <lightning:tabset>
+            <lightning:tab label="HISTORY">
+                <lightning:layout>
+                    <lightning:layoutItem padding="around-small">
+                        <aura:if isTrue="{! !empty(v.history)}">
+                            <c:StudentHistory history="{!v.history}" />
+                            <aura:set attribute="else">
+                                The student has not registered for any courses.
+                            </aura:set>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:tab>
+            <aura:if isTrue="{! !empty(v.history) }">
+                <lightning:tab label="EDIT NOTES">
+                    <lightning:layout>
+                        <lightning:layoutItem padding="around-small">
+                            <c:EditStudentNote history="{!v.history}" />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:tab>            
+            </aura:if>
+        </lightning:tabset>
+    </aura:if>
+    
+</aura:component>

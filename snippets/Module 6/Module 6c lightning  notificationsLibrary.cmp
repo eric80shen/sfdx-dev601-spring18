@@ -1,0 +1,45 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="accountName" type="String" default="Some Account Name" />
+    
+    <lightning:notificationsLibrary aura:id="notifLib"/>
+    
+    <lightning:button name="notice" label="Show Notice" onclick="{!c.handleShowNotice}"/>
+    <lightning:button name="toast" label="Show Toast" onclick="{!c.handleShowToast}"/>
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    handleShowNotice : function(component, event, helper) {
+        var toast = $A.get("event.force:showToast"); // Are we in one.app?
+        if (toast) {
+            component.find('notifLib').showNotice({
+                "variant": "error",
+                "header": "Something has gone wrong!",
+                "message": "Some Message",
+                "closeCallback": function() {
+                    alert('You closed the alert!');
+                }
+            });
+        } else {
+            alert('You must be in one.app (LEX, SF1 or Communities)');
+        }
+    },
+    
+    handleShowToast : function(component, event, helper) {
+        var toast = $A.get("event.force:showToast"); // Are we in one.app?
+        if (toast) {
+            component.find('notifLib').showToast({
+                "title": "Success!",
+                "message": "Account {0} has been updated.",
+                "messageData" : [component.get('v.accountName')],
+                "variant" : "success",
+                "mode" : "dismissable"
+            });
+        } else {
+            alert('You must be in one.app (LEX, SF1 or Communities)');
+        }
+    }
+})

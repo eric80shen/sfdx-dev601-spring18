@@ -1,0 +1,139 @@
+<!-- 
+
+Define the Filter Students form as a set of dynamically populated select boxes
+
+Tasks:
+1. Use lightning:layout to define a two-column, horizontal layout 
+2. Create an Apex Class and methods that can be accessed by a Lightning Component in order to read data from Force.com.
+3. Create the Student Browser Form's instructor selector.
+4. Create the Course Delivery selector which is dynamically populated with data for the selected instructor.
+
+-->
+
+<!-- NEW Apex Class StudentBrowserForm -->
+public with sharing class StudentBrowserForm {
+
+    @AuraEnabled
+    public static List<User> getInstructors() {
+        return [SELECT Id, Name 
+                FROM User 
+                WHERE Is_Instructor__c = true ORDER BY Name];        
+    }
+    
+    @AuraEnabled
+    public static List<Course_Delivery__c> getDeliveriesByInstructor (Id instructorId) {
+        return [SELECT id, Start_Date__c, Location__c, Attendee_Count__c
+                FROM Course_Delivery__c
+                WHERE Instructor__c = :instructorId
+                ORDER BY Start_Date__c DESC];
+        //return [SELECT id, Start_Date__c, Location__c, Attendee_Count__c
+        //        FROM Course_Delivery__c
+        //        WHERE Instructor__c = :instructorId
+        //        AND Attendee_Count__c > 0
+        //        ORDER BY Start_Date__c DESC];        
+    }
+}
+
+<!-- StudentBrowserForm.cmp -->
+<aura:component extends="c:Base" controller="StudentBrowserForm">
+    
+    <aura:attribute name="instructors" type="User[]" access="private" />
+    <aura:attribute name="selectedInstructorId" type="Id" access="private" default="" />
+    <aura:attribute name="deliveries" type="object[]" access="private" />
+    <aura:attribute name="selectedDeliveryId" type="Id" access="private" default="" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <lightning:card title="Filter Students" iconName="utility:search">
+        <lightning:layout horizontalAlign="center">
+            
+        	<lightning:layoutItem padding="around-small">
+                <lightning:select label="Select Instructor" 
+                                  variant="label-hidden" 
+                                  name="instructor"
+                                  value="{!v.selectedInstructorId}"
+                                  onchange="{!c.onInstructorChange}">
+                	<option value="">Select Instructor</option>
+                    <aura:iteration items="{!v.instructors}" var="instructor">
+                    	<option value="{!instructor.Id}">
+                        	{!instructor.Name}
+                        </option>
+                    </aura:iteration>
+                </lightning:select>
+            </lightning:layoutItem>
+            
+        	<lightning:layoutItem padding="around-small">
+                <lightning:select name="deliverySelector"
+                                  label="Select Delivery"
+                                  variant="label-hidden"
+                                  value="{!v.selectedDeliveryId}">
+                	<option value="">Select Delivery</option>
+                    <aura:iteration items="{!v.deliveries}" var="delivery">
+                    	<option value="{!delivery.Id}">
+                        	{!delivery.Start_Date__c}
+                            ({!delivery.Location__c}) - 
+                            ({!delivery.Attendee_Count__c} students)
+                        </option>
+                    </aura:iteration>                    
+                </lightning:select>
+            </lightning:layoutItem>  
+            
+        </lightning:layout>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- StudentBrowserFormController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onInstructorChange : function(component, event, helper) {
+        component.set('v.selectedDeliveryId', '');
+        if (component.get('v.selectedInstructorId') != '') {
+            helper.callServer(component,
+                              "c.getDeliveriesByInstructor",
+                              function(response) {
+                                  component.set('v.deliveries', response);
+                              },
+                              {
+                                  instructorId : component.get('v.selectedInstructorId')
+                              }
+            );
+        }
+    }
+})
+
+<!-- StudentBrowserFormHelper.js -->
+({
+	onInit : function(component, event, helper) {
+		helper.callServer(component,
+                          "c.getInstructors",
+                          function(response) {
+                              component.set('v.instructors', response);
+                          }
+        );
+	}
+})
+
+<!-- StudentTiles.cmp -->
+<aura:component >
+    
+    <aura:attribute name="students" type="Contact[]" access="public" />
+    
+    <lightning:layout horizontalAlign="center" multipleRows="true">
+        
+        <aura:iteration items="{!v.students}" var="student">
+            <lightning:layoutItem padding="around-small" 
+                                  size="12" 
+                                  smallDeviceSize="6"
+                                  mediumDeviceSize="4"
+                                  largeDeviceSize="3">
+	            <c:StudentTile student="{!student}" />            
+            </lightning:layoutItem>
+        </aura:iteration>
+        
+    </lightning:layout>
+    
+</aura:component>

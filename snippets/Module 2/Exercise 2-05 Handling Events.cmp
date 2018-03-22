@@ -1,0 +1,99 @@
+<!-- 
+
+Implement an init() handler that will generate sample data to test out the gallery function.
+Clicking on a tile in the gallery should display the user's name in an alert box.
+
+Tasks:
+1. Handle an initialization event
+2. Dynamically modify the contents of a component attribute
+3. Iterate through a list of sObjects
+4. Implement a click handler
+5. Programmatically access a component attribute
+
+-->
+
+<!-- NEW StudentTiles.cmp -->
+<aura:component >
+    	
+    <aura:attribute name="students" type="Contact[]" access="public" />
+    
+    <aura:iteration items="{!v.students}" var="student">
+        <c:studentTile student="{!student}" />
+    </aura:iteration>
+	
+</aura:component>
+
+<!-- StudentTile.cmp -->
+<aura:component >
+    
+    <aura:attribute name="student" type="Contact" access="public" 
+                    default="{'sobjectType' : 'Contact', 
+                              'Name' : 'Joe Flowers',
+                               PhotoUrl : '/services/images/photo/003B0000009VnYcIAK'}"/>
+    <aura:attribute name="selected" type="boolean" access="public" default="false" />
+    
+    <lightning:button onclick="{!c.onStudentClick}" 
+                      variant="neutral" 
+                      class="{! v.selected ? 'tile selected' : 'tile' }">
+        
+        <div class="innertile" style="{# 'background-image:url(' + v.student.PhotoUrl + ')' }" >
+            <div class="lower-third">
+                <h1 class="truncate">{!v.student.Name}</h1>
+            </div>
+        </div>
+        
+    </lightning:button>
+	
+</aura:component>
+
+<!-- StudentTileController.js -->
+({
+	onStudentClick : function(component, event, helper) {
+		alert(component.get('v.student').Name);
+	}
+})
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	
+    <div class="slds-m-bottom_small">
+	    <c:StudentBrowserForm />    
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	<c:StudentTiles students="{!v.studentList}" />
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	}
+})
+
+<!-- StudentBrowserHelper.js -->
+({
+    onInit : function(component, event, helper) {
+        var students = [];
+        var studentNames = ['Steve','Dave','Joe', 'Jyoti', 'Andres'];
+        for (var i=0; i<5; i++) {
+            students.push(
+                {
+                    'sobjectType' : 'Contact', 
+                    'Name' : studentNames[i],
+                    'PhotoUrl': '/services/images/photo/003B0000009VnYcIAK',
+                    'Id' : i
+                }
+            );
+        }
+        component.set('v.studentList', students);		
+    }
+})

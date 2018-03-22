@@ -1,0 +1,84 @@
+<!-- BC_Event.evt -->
+<aura:event type="component" description="Event template" />
+
+<!-- BC_Bottom.cmp -->
+<aura:component >
+    
+    <aura:registerEvent name="BC_EVName" type="c:BC_Event" />
+    
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    
+    <lightning:button label="Click and look at console log" onclick="{!c.onClick}" />
+    
+</aura:component>
+
+<!-- BC_BottomController.js -->
+({
+    onHandle : function(component, event, helper) {
+        console.log("Event handled: " + event.getPhase() + ": Component: " + component.getName());
+    },
+
+    onClick : function(component, event, helper) {
+        component.getEvent("BC_EVName").fire();
+    }
+})
+
+<!-- BC_Container.cmp -->
+<aura:component >
+    <!--
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    -->
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" includeFacets="true"/>
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" includeFacets="true"/>
+
+    {!v.body}
+    
+</aura:component>
+
+<!-- BC_ContainerController.js -->
+({
+    onHandle : function(component, event, helper) {
+        console.log("Event handled: " + event.getPhase() + ": Component: " + component.getName());
+    }
+})
+
+<!-- BC_Middle.cmp -->
+<aura:component >
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    
+    <!--
+    <c:BC_Bottom />
+    -->
+    
+    <c:BC_Container>
+        <c:BC_Bottom />
+    </c:BC_Container>
+    
+</aura:component>
+
+<!-- BC_MiddleController.js -->
+({
+    onHandle : function(component, event, helper) {
+        console.log("Event handled: " + event.getPhase() + ": Component: " + component.getName());
+    }
+})
+
+<!-- BC_Top.cmp -->
+<aura:component >
+    
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" />
+    <aura:handler name="BC_EVName" event="c:BC_Event" action="{!c.onHandle}" phase="capture" />
+    
+    <c:BC_Middle /> 
+    
+</aura:component>
+
+<!-- BC_TopController.js -->
+({
+    onHandle : function(component, event, helper) {
+        console.log("Event handled: " + event.getPhase() + ": Component: " + component.getName());
+    }
+})

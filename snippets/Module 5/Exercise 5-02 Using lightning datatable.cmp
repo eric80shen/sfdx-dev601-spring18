@@ -1,0 +1,137 @@
+<!--
+
+Use lightning:datatable to output a list of contacts who have been certified in the selected topic 
+
+Tasks:
+1. Create the Apex class to retrieve certifications.
+2. Create the Navigation Component
+3. Fetch the Certifications
+4. Dynamically Generate the Vertical Navigation
+5. Deploy the Component
+6. Modify the Layout
+
+-->
+
+<!-- NEW Apex class -->
+public with sharing class CertificationStudentList {
+    
+    @AuraEnabled
+    public static List<Certification_Held__c> getCertifiedStudents(Id certificationId) {
+        return [SELECT Id, Certified_Professional__r.Name, Certification__r.Name,
+                       Certified_Professional__r.Id, Certified_Professional__r.Email,
+                       Certified_Professional__r.MobilePhone, Date_Achieved__c
+                FROM Certification_Held__c
+                WHERE Certification__r.Id = :certificationId
+                ORDER BY Certified_Professional__r.Name
+               ];
+    }
+}
+
+<!-- NEW CertificationStudentList.cmp -->
+<aura:component extends="c:Base" controller="CertificationStudentList">
+    
+    <aura:attribute name="contacts" type="Object[]" access="private" />
+    <aura:attribute name="columns" type="Object[]" access="private" />
+    <aura:attribute name="certificationId" type="Id" access="public" />
+    <aura:attribute name="label" type="String" access="public" default="" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="change" value="{!v.certificationId}" action="{!c.onCertificationIdChange}"/>
+    
+    <lightning:card title="{!v.label + ' Certifications'}">
+        <lightning:datatable data="{!v.contacts}"
+                             columns="{!v.columns}"
+                             keyField="certificationHeldId" />
+    </lightning:card>
+
+</aura:component>
+
+<!-- CertificationStudentListController.js -->
+({
+    doInit : function(component, event, helper) {
+        component.set('v.columns', [    
+            {label: 'Name', fieldName: 'name', type: 'text'},
+            {label: 'Date', fieldName: 'date', type: 'text'},
+            {label: 'Email',fieldName: 'email', type: 'email'},
+            {label: 'Contact Phone', fieldName: 'phone', type: 'phone'}        
+        ]);
+    },
+    
+    onCertificationIdChange : function(component, event, helper) {
+        helper.callServer(
+            component,
+            "c.getCertifiedStudents",
+            function(response) {  
+                var aData = [];
+                for (var i=0; i<response.length; i++) {
+                    var rec = response[i];
+                    aData.push({
+                        certificationHeldId: rec.Id,
+                        contactId: rec.Certified_Professional__r.Id,
+                        name: rec.Certified_Professional__r.Name,
+                        date: rec.Date_Achieved__c,
+                        email:rec.Certified_Professional__r.Email,
+                        phone: rec.Certified_Professional__r.MobilePhone
+                    });
+                }
+                component.set('v.contacts', aData);
+            },
+            {
+                certificationId : component.get('v.certificationId')
+            }
+        ); 
+    }
+})
+
+<!-- AwInstructors.cmp -->
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="viewMode" type="String" default="students" access="private" />
+    <aura:attribute name="certificationId" type="Id" access="private" />
+    <aura:attribute name="certificationLabel" type="String" access="private" />
+
+    <lightning:layout horizontalAlign="space">
+        
+        <lightning:layoutItem padding="around-small" size="2">
+            <c:AwInstructorsNavigation onselect="{!c.onNavSelect}" />
+        </lightning:layoutItem>
+
+        <aura:if isTrue="{!v.viewMode == 'students'}">
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="6">
+                <c:StudentBrowser />
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem flexibility="auto" padding="around-small" size="4">
+                <c:StudentDetail />
+            </lightning:layoutItem>
+            
+            <aura:set attribute="else">
+                
+                <lightning:layoutItem flexibility="auto" padding="around-small" size="10">
+                    <c:CertificationStudentList label="{!v.certificationLabel}" 
+                                                certificationId="{!v.certificationId}" />
+                </lightning:layoutItem>
+                
+            </aura:set>
+        </aura:if>
+        
+    </lightning:layout>
+
+</aura:component>
+
+<!-- AwInstructorsController.js -->
+({
+    onNavSelect : function(component, event, helper) {
+        var selectionName = event.getParam('name');
+        if (selectionName == 'students') {
+            component.set('v.viewMode','students');
+        } else {
+            component.set('v.viewMode','certifications');
+            
+            var key = selectionName.split(',');
+            component.set('v.certificationId', key[0]);
+            component.set('v.certificationLabel', key[1]);
+        }		
+    }
+})

@@ -1,0 +1,68 @@
+<!-- Lab Phase 1 
+
+•	Use the lightning:formattedEmail component to output the contact's Email.
+•	Use the lightning:formattedPhone component to output the contact's phone number.
+•	Output the Contact description field underneath the phone number.
+•	Add a button to the card that, when pressed, invokes the force:navigateToSObject application event to display the detail record page as illustrated in Figure 2.
+•	Hide the contents of StudentDetail.cmp if no student has been selected.
+
+-->
+
+<!-- StudentDetail.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:attribute name="contactId" access="private" type="String" />
+    <aura:attribute name="courseDeliveryId" access="private" type="String" />
+    <aura:attribute name="contact" access="public" type="Contact" />
+    <aura:attribute name="recordError" access="private" type="String" />
+    
+    <aura:handler event="c:AwInstructorsStudentSelected" action="{!c.onStudentSelected}"/>
+    
+    <force:recordData aura:id="recordLoader"
+                      recordId="{!v.contactId}"
+                      targetFields="{!v.contact}"
+                      targetError="{!v.recordError}"
+                      fields="Name,Email,Phone,Description" />
+    
+    <aura:if isTrue="{!v.contactId != null}">
+        <lightning:card title="{!v.contact.Name}">
+            <aura:set attribute="actions">
+                <lightning:button label="Go to Record" onclick="{!c.goToRecord}"/>
+            </aura:set>
+            <lightning:layout>
+                <lightning:layoutItem padding="around-small">
+                    <lightning:formattedEmail value="{!v.contact.Email}" />
+                    <br/>
+                    <lightning:formattedPhone value="{!v.contact.Phone}" />
+                    <br/>
+                    <lightning:formattedText value="{!v.contact.Description}" />
+                </lightning:layoutItem>
+            </lightning:layout>
+        </lightning:card>    
+    </aura:if>
+    
+</aura:component>
+
+<!-- StudentDetailController.js -->
+({
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        var courseDeliveryId = event.getParam('contactId');
+        component.set('v.contactId', contactId);
+        component.set('v.courseDeliveryId', courseDeliveryId);
+        component.find('recordLoader').reloadRecord(); 
+    },
+    
+    goToRecord : function(component, event, helper) {
+        var evt = $A.get("event.force:navigateToSObject");
+        if (evt) {
+            evt.setParams({
+                "recordId": component.get('v.contactId'),
+                "slideDevName": "detail"
+            });
+            evt.fire();
+        } else {
+            alert('Feature not supported on this platform');
+        }        
+    }
+})

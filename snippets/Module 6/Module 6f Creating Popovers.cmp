@@ -1,0 +1,37 @@
+<!-- Must run from LEX -->
+
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    
+    <lightning:card title="My Card">
+        <lightning:button name="popover" label="Show Popover" onclick="{!c.handleShowPopover}"/>    
+        <br />
+        <span class="mypopover" onmouseover="{!c.handleShowPopover}">
+            Popover should display if you hover over here.
+        </span>
+    </lightning:card>
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({    
+    handleShowPopover : function(component, event, helper) {
+        component.find('overlayLib').showCustomPopover({
+            body: "This is my popover",
+            referenceSelector: ".mypopover",
+            cssClass: "popoverclass,cTestCmp",
+        }).then(function (overlay) {
+            setTimeout(function(){ 
+                //close the popover after 3 seconds
+                overlay.close();
+            }, 3000);
+        });
+    }
+})
+
+<!-- TestCmp.css -->
+.THIS.popoverclass {
+    min-height: 50px;
+}

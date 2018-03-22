@@ -1,0 +1,22 @@
+<!-- BoatSearch.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <aura:handler name="formsubmit" event="c:FormSubmit" action="{!c.onFormSubmit}"/>
+
+    <lightning:card title="Find a Boat">
+        <c:BoatSearchForm />
+    </lightning:card>
+    
+    <lightning:card title="Matching Boats">
+        <c:BoatSearchResults aura:id="boatsearchresults"/>
+    </lightning:card>    
+    
+</aura:component>
+
+<!-- BoatSearchController.js -->
+({
+	onFormSubmit : function(component, event, helper) {
+		var formData = event.getParam('formData');
+        component.find('boatsearchresults').search(formData.boatTypeId);
+	}
+})

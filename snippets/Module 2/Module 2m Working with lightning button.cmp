@@ -1,0 +1,43 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global">
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Implementing a text only</strong></p>
+        <lightning:button label="Submit" onclick="{! c.handleClick }" />
+    </div>    
+    
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Implementing a label and an icon</strong></p>
+        <lightning:button iconName="utility:push" iconPosition="left" label="Submit" onclick="{! c.handleClick }" />
+    </div>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Implementing a body only button</strong></p>
+        <lightning:button onclick="{! c.handleClick }">
+            <strong>Upload Some<br/>Stuff!</strong>
+        </lightning:button>
+    </div>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Implementing a body and icon button</strong></p>
+        <lightning:button iconName="utility:push" iconPosition="left" onclick="{! c.handleClick }">
+            <strong>Upload Some<br/>Stuff!</strong>
+        </lightning:button>
+    </div>
+
+    <div class="slds-box slds-size_1-of-4">
+        <p><strong>Theming lightning:button with variant options</strong></p>
+        <lightning:button onclick="{! c.handleClick }" label="Base" variant="base" class="slds-float--left"/>
+        <lightning:button onclick="{! c.handleClick }" label="Brand" variant="brand" class="slds-float--left"/>
+        <lightning:button onclick="{! c.handleClick }" label="Destructive" variant="destructive" class="slds-float--left"/>
+        <lightning:button onclick="{! c.handleClick }" label="Inverse" variant="inverse" /> 
+    </div>
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    handleClick : function(component, event, helper) {
+        alert("Ding!");
+    }
+})

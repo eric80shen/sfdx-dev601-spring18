@@ -1,0 +1,20 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:accordion activeSectionName="Profile">
+        
+        <lightning:accordionSection name="ContactInfo" label="Contact Info">
+            Contact Info Goes Here
+        </lightning:accordionSection>
+        
+        <lightning:accordionSection name="Profile" label="Profile">
+            User Profile Goes Here
+        </lightning:accordionSection>
+        
+        <lightning:accordionSection name="Groups" label="Group Membership">
+            Group Membership Goes Here
+        </lightning:accordionSection>
+        
+    </lightning:accordion>
+    
+</aura:component>

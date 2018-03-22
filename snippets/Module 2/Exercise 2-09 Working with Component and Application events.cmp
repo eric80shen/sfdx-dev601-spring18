@@ -1,0 +1,272 @@
+<!-- 
+
+Define and raise a component event from the Filter Students form which is handled by the StudentBrowser component - triggering an Apex request and filtering of the gallery output.
+
+Tasks:
+1. Define a custom Lightning Component event
+2. Raise a custom Lightning Component event
+3. Handle a custom Lightning Component event.
+4. Use data passed by a component event in an Apex transaction.
+5. Raise an Application Event
+6. Listen for an Application Event
+7. Raise a force Event
+
+-->
+
+<!-- NEW StudentFilterChange.evt 
+
+Description: Fired when a user selects an instructor or a delivery
+-->
+<aura:event type="COMPONENT" description="Updated filters" >
+    <aura:attribute name="instructorId" type="String" />
+    <aura:attribute name="courseDeliveryId" type="String" />
+</aura:event>
+
+<!-- NEW StudentSelected.evt
+
+Description: Fired when a user clicks on a student grid row or tile
+-->
+<aura:event type="COMPONENT" description="Selected student" >
+    <aura:attribute name="contactId" type="Id" />
+</aura:event>
+
+<!-- StudentTile.cmp -->
+<aura:component >
+    
+    <aura:attribute name="student" type="Contact" access="public" 
+                    default="{'sobjectType' : 'Contact', 
+                              'Name' : 'Joe Flowers',
+                               PhotoUrl : '/services/images/photo/003B0000009VnYcIAK'}"/>
+    <aura:attribute name="selected" type="boolean" access="public" default="false" />
+    
+    <aura:registerEvent name="onStudentSelected" type="c:StudentSelected" />
+    
+    <lightning:button onclick="{!c.onStudentClick}" 
+                      variant="neutral" 
+                      class="{! v.selected ? 'tile selected' : 'tile' }">
+        
+        <div class="innertile" style="{# 'background-image:url(' + v.student.PhotoUrl + ')' }" >
+            <div class="lower-third">
+                <h1 class="truncate">{!v.student.Name}</h1>
+            </div>
+        </div>
+        
+    </lightning:button>
+	
+</aura:component>
+
+<!-- StudentTileController.js -->
+({
+	onStudentClick : function(component, event, helper) {
+        //debugger;
+		//alert(component.get('v.student').Name);
+        var student = component.get('v.student');
+        console.log('Name ', student.Name);
+        console.log('Photo ', student.PhotoUrl);
+        
+        var event = component.getEvent('onStudentSelected');
+        event.setParams({
+            contactId : student.Id
+        });
+        event.fire();
+	}
+})
+
+<!-- StudentBrowserForm.cmp -->
+<aura:component extends="c:Base" controller="StudentBrowserForm">
+    
+    <aura:attribute name="instructors" type="User[]" access="private" />
+    <aura:attribute name="selectedInstructorId" type="Id" access="private" default="" />
+    <aura:attribute name="deliveries" type="object[]" access="private" />
+    <aura:attribute name="selectedDeliveryId" type="Id" access="private" default="" />
+    
+    <aura:registerEvent name="onStudentFilterChange" type="c:StudentFilterChange" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    
+    <lightning:card title="Filter Students" iconName="utility:search">
+        <lightning:layout horizontalAlign="center">
+            
+        	<lightning:layoutItem padding="around-small">
+                <lightning:select label="Select Instructor" 
+                                  variant="label-hidden" 
+                                  name="instructor"
+                                  value="{!v.selectedInstructorId}"
+                                  onchange="{!c.onInstructorChange}">
+                	<option value="">Select Instructor</option>
+                    <aura:iteration items="{!v.instructors}" var="instructor">
+                    	<option value="{!instructor.Id}">
+                        	{!instructor.Name}
+                        </option>
+                    </aura:iteration>
+                </lightning:select>
+            </lightning:layoutItem>
+            
+        	<lightning:layoutItem padding="around-small">
+                <lightning:select name="deliverySelector"
+                                  label="Select Delivery"
+                                  variant="label-hidden"
+                                  value="{!v.selectedDeliveryId}"
+                                  onchange="{!c.onFilterChange}">
+                	<option value="">Select Delivery</option>
+                    <aura:iteration items="{!v.deliveries}" var="delivery">
+                    	<option value="{!delivery.Id}">
+                        	{!delivery.Start_Date__c}
+                            ({!delivery.Location__c}) - 
+                            ({!delivery.Attendee_Count__c} students)
+                        </option>
+                    </aura:iteration>                    
+                </lightning:select>
+            </lightning:layoutItem>
+            
+            <lightning:layoutItem padding="around-small">
+               <lightning:button aura:id="btnAddDelivery" 
+                                 disabled="true" 
+                                 variant="brand" 
+                                 label="Add New Delivery" 
+                                 onclick="{!c.onAddNewDelivery}" />
+            </lightning:layoutItem>
+            
+        </lightning:layout>
+    </lightning:card>
+    
+</aura:component>
+
+<!-- StudentBrowserFormController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onInstructorChange : function(component, event, helper) {
+        component.set('v.selectedDeliveryId', '');
+        if (component.get('v.selectedInstructorId') != '') {
+            component.find('btnAddDelivery').set('v.disabled', false);
+            helper.callServer(component,
+                              "c.getDeliveriesByInstructor",
+                              function(response) {
+                                  component.set('v.deliveries', response);
+                              },
+                              {
+                                  instructorId : component.get('v.selectedInstructorId')
+                              }
+            );
+        } else {
+            component.find('btnAddDelivery').set('v.disabled', true);
+        }
+        helper.onFilterChange(component);
+    },
+    
+    onFilterChange : function(component, event, helper) {
+        helper.onFilterChange(component);
+    },
+    
+    onAddNewDelivery : function(component, event, helper) {
+        var evt = $A.get("event.force:createRecord");
+        if (evt) {
+            evt.setParams({
+                entityApiName: 'Course_Delivery__c',
+                defaultFieldValues: {
+                    Instructor__c : component.get('v.selectedInstructorId')
+                }
+            });
+            evt.fire();
+        } else {
+            alert("Feature Not Available")
+        }        
+    }
+})
+
+<!-- StudentBrowserFormHelper.js -->
+({
+	onInit : function(component, event, helper) {
+		helper.callServer(component,
+                          "c.getInstructors",
+                          function(response) {
+                              component.set('v.instructors', response);
+                          }
+        );
+	},
+    
+    onFilterChange : function(component) {
+        var e = component.getEvent('onStudentFilterChange');
+        e.setParams(
+            {
+                instructorId : component.get('v.selectedInstructorId'),
+                courseDeliveryId : component.get('v.selectedDeliveryId')
+        	}
+        );
+        e.fire();
+    }
+})
+
+<!-- StudentTiles.cmp -->
+<aura:component >
+    
+    <aura:attribute name="students" type="Contact[]" access="public" />
+    <aura:attribute name="selectedStudentId" type="Id" access="public" />
+    
+    <lightning:layout horizontalAlign="center" multipleRows="true">
+        
+        <aura:iteration items="{!v.students}" var="student">
+            <lightning:layoutItem padding="around-small" 
+                                  size="12" 
+                                  smallDeviceSize="6"
+                                  mediumDeviceSize="4"
+                                  largeDeviceSize="3">
+                <c:StudentTile student="{!student}"
+                               selected="{!v.selectedStudentId == student.Id ? true : false}" />            
+            </lightning:layoutItem>
+        </aura:iteration>
+        
+    </lightning:layout>
+    
+</aura:component>
+
+<!-- StudentBrowser.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" 
+                extends="c:Base"
+                controller="StudentBrowser">
+    
+    <aura:attribute name="studentList" type="Contact[]" access="private" />
+    <aura:attribute name="selectedCourseDeliveryId" type="String" access="private" default="" />
+    <aura:attribute name="selectedContactId" type="String" access="private" default="" />
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="onStudentSelected" event="c:StudentSelected" action="{!c.onStudentSelected}" />
+    <!--
+    <aura:handler name="onStudentFilterChange" event="c:StudentFilterChange" action="{!c.onStudentFilterChange}" />
+    -->
+	
+    <div class="slds-m-bottom_small">
+      <!-- Following syntax saves having to write a handler statement -->
+	    <c:StudentBrowserForm onStudentFilterChange="{!c.onStudentFilterChange}" />
+    </div>
+    
+    <lightning:tabset variant="scoped">
+    	<lightning:tab label="Gallery">
+        	<c:StudentTiles students="{!v.studentList}" 
+                            selectedStudentId="{!v.selectedContactId}"/>
+        </lightning:tab>
+    </lightning:tabset>
+    
+</aura:component>
+
+<!-- StudentBrowserController.js -->
+({
+	doInit : function(component, event, helper) {
+		helper.onInit(component, event, helper);
+	},
+    
+    onStudentFilterChange : function(component, event, helper) {
+        var instructorId = event.getParam('instructorId');
+        var courseDeliveryId = event.getParam('courseDeliveryId');
+        component.set('v.selectedCourseDeliveryId', courseDeliveryId);
+        helper.queryStudents(component, helper, instructorId, courseDeliveryId);
+    },
+    
+    onStudentSelected : function(component, event, helper) {
+        var contactId = event.getParam('contactId');
+        component.set('v.selectedContactId',contactId);
+    }    
+})

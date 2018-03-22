@@ -1,0 +1,33 @@
+<!-- NEW MyCustomTemplate.cmp -->
+<aura:component implements="lightning:appHomeTemplate" description="Responsive, 2-column template">
+    
+    <aura:attribute name="column1" type="Aura.Component[]" />
+    <aura:attribute name="column2" type="Aura.Component[]" />
+    
+    <div>
+        <lightning:layout horizontalAlign="spread">
+            <lightning:layoutItem flexibility="grow" class="slds-m-right_small">
+                {!v.column1}
+            </lightning:layoutItem>
+            <lightning:layoutItem class="slds-m-left_small" size="{! $Browser.isDesktop ? '4' : '6' }">
+                {!v.column2}
+            </lightning:layoutItem>
+        </lightning:layout>
+    </div>  
+    
+</aura:component>
+
+<!-- MyCustomTemplate.design -->
+<design:component label="Two Column Custom App Page Template">
+    
+    <flexipage:template >
+        <!-- The default width for the "left" region is "MEDIUM". In tablets, the width is "SMALL" -->
+        <flexipage:region name="column1" defaultWidth="MEDIUM">
+            <flexipage:formfactor type="MEDIUM" width="SMALL" />
+        </flexipage:region>
+        
+        <flexipage:region name="column2" defaultWidth="SMALL" />
+        
+    </flexipage:template>
+    
+</design:component>

@@ -1,0 +1,150 @@
+<!-- TestCmpEvent.evt -->
+<aura:event type="COMPONENT" >
+    <aura:attribute name="message" type="String" />
+    <aura:attribute name="stopPropagation" type="Boolean" />
+</aura:event>
+
+<!-- TestAppEvent.evt -->
+<aura:event type="APPLICATION" >
+    <aura:attribute name="message" type="String" />
+    <aura:attribute name="stopPropagation" type="Boolean" />
+</aura:event>
+
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:layout horizontalAlign="space" class="slds-grid_frame slds-box" >
+        <lightning:layoutItem flexibility="grow" class="slds-box">
+            <c:TestParent title="Event example - Mother Component"/>
+        </lightning:layoutItem >
+        <lightning:layoutItem flexibility="grow" class="slds-box">
+            <c:TestParent title="Event example - Father Component"/>
+        </lightning:layoutItem>
+    </lightning:layout>
+    
+</aura:component>
+
+<!-- TestParent.cmp -->
+<aura:component >
+    <aura:attribute name="title" type="String" default="Component Event Example" />
+    <aura:attribute name="parentMessage" type="String" default="Hello from parent"/>
+    
+    <aura:handler name="grandChildClicked" event="c:TestCmpEvent" action="{!c.handleEvent}" phase="bubble"/>
+    <aura:handler event="c:TestAppEvent" action="{!c.handleEvent}" />
+
+    <strong>{!v.title}</strong>
+    <div class="slds-box slds-theme_inverse">
+        <strong>Parent Component</strong>
+        
+        <br/><p>Value of parentMessage is <b>{!v.parentMessage}</b></p>
+
+        <br/><p><ui:button label="Click me to call child method" aura:id="MyButton" press="{!c.onButtonPress}"/></p>
+        
+        <br/><c:TestChild aura:id="testChild" />
+    </div>
+    
+</aura:component>
+
+<!-- TestParentController.js -->
+({
+    handleEvent : function(component, event, helper) {
+        var params = event.getParams();
+        component.set("v.parentMessage", params.message);
+        if ( params.stopPropagation ) {
+            event.stopPropagation();
+        }
+    },
+    
+    onButtonPress : function(component, event, helper) {
+        var childCmp = component.find("testChild");
+        childCmp.sampleMethod(component.get("v.parentMessage"));
+    }
+})
+
+<!-- TestChild.cmp -->
+<aura:component >
+    <aura:attribute name="childMessage" type="String" />
+    <aura:attribute name="parentMessage" type="String" />
+    
+    <aura:handler name="grandChildClicked" event="c:TestCmpEvent" action="{!c.handleEvent}" phase="bubble"/>
+
+    <aura:method name="sampleMethod" action="{!c.doAction}" access="PUBLIC" description="Sample method with parameters"> 
+        <aura:attribute name="param1" type="String" default="parameter 1" /> 
+    </aura:method>
+
+    <div class="slds-box slds-theme_info">
+        <strong>Child Component</strong>
+        <br/><p>Value of childMessage is <b>{!v.childMessage}</b></p>
+        <p>Value of parentMessage is <b>{!v.parentMessage}</b></p>
+        <br/><c:TestGrandChild />
+    </div>   
+</aura:component>
+
+<!-- TestChildController.cmp -->
+({
+    handleEvent : function(component, event, helper) {
+        var params = event.getParams();
+        component.set("v.childMessage", params.message);
+        if ( params.stopPropagation ) {
+            event.stopPropagation();
+        }
+    },
+
+    doAction : function(component, event, helper) {
+        var params = event.getParam("arguments");
+        if (params) {
+            var param1 = params.param1;
+            component.set("v.parentMessage", param1);
+        }
+    }
+})
+
+<!-- TestGrandChild.cmp -->
+<aura:component >
+    <aura:attribute name="grandChildMessage" type="String" default="Hello from Grand Child Component"/>
+    <aura:attribute name="stopPropagation" type="Boolean" default="false" />
+    
+    <aura:registerEvent name="grandChildClicked" type="c:TestCmpEvent" />
+    <aura:registerEvent name="appEvent" type="c:TestAppEvent" />
+    
+    <div class="slds-box slds-theme_warning">
+        <strong>Grand Child Component</strong>
+        <ui:inputText label="Enter some text to send to parents: " value="{!v.grandChildMessage}" size="40"/>
+        
+        <ui:inputCheckBox label="Click to stop event propagation beyond initial parent" value="{!v.stopPropagation}" />
+        
+        <br/><ui:button label="COMPONENT Event - Click Me!" aura:id="MyButton1" press="{!c.fireComponentEvent}"/>
+        <br/><ui:button label="APPLICATION Event - Click Me!" aura:id="MyButton2" press="{!c.fireApplicationEvent}"/>
+    </div>   
+</aura:component>
+
+<!-- TestGrandChildController.js -->
+({
+    fireComponentEvent : function(component, event, helper) {
+        var cmpEvent = component.getEvent("grandChildClicked");
+
+        cmpEvent.setParams({
+            message : component.get("v.grandChildMessage"),
+            stopPropagation : component.get("v.stopPropagation")
+        });
+        cmpEvent.fire();
+    },
+
+    fireApplicationEvent : function(component, event, helper) {
+        var appEvent = $A.get("e.c:TestAppEvent");
+
+        appEvent.setParams({
+            message : component.get("v.grandChildMessage"),
+            stopPropagation : component.get("v.stopPropagation")
+        });
+        appEvent.fire();
+    }    
+})
+
+<!--
+To play with bubble/capture run a component event as is. Currently set to bubble
+so will bubble up from grandchild to child and stop there is set the stop propagation flag.
+
+Then change to capture for both child and parent handlers. Should see it go to parent but
+not go down to child
+-->

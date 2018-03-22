@@ -1,0 +1,52 @@
+<!--
+
+Invoke the <lightning:badge> component and the Panic Button Component from a 
+Visualforce page
+
+-->
+
+<!-- NEW PanicButtonAppVF.app
+
+Description: Invoke Panic Button and SLDS badge from Visualforce.
+Lightning Out Dependency App: Checked
+
+-->
+<aura:application extends="ltng:outApp" >
+    
+  <aura:dependency resource="c:PanicButton" />
+  <aura:dependency resource="lightning:badge" />
+    
+</aura:application>
+
+<!-- NEW Visualforce Page PanicButton -->
+<apex:page >
+    <!--
+    <script src="/lightning/lightning.out.js" />
+    -->  
+    <apex:includeLightning />
+  
+    <div id="badgesDiv" style="margin:10px" />
+    <div id="panicButtonDiv" />
+        
+    <script>
+        $Lightning.use("c:PanicButtonAppVF", function() {
+
+            $Lightning.createComponent(
+              "c:PanicButton",
+              {},
+              "panicButtonDiv"
+            );
+
+            $Lightning.createComponent(
+              "lightning:badge",
+              {
+               label: 'Don\'t Panic!',
+               class: 'slds-theme_inverse'
+              },
+              "badgesDiv"
+            );
+            
+        });
+    </script>
+        
+</apex:page>

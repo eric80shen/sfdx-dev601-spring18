@@ -1,0 +1,26 @@
+<!-- 
+Works in SF1 (create Tab and add to Nav) and LEX (add to home page)
+
+TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+    
+    <lightning:button label="Press for some toast" onclick="{!c.displayToast}" />
+    
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    displayToast : function (component, event, helper) {
+        var toast = $A.get("event.force:showToast");
+        if (toast) {
+            // Fire the toast event in Salesforce1 and Lightning Experience
+            toast.setParams({
+                "title": "Success!",
+                "message": "The component loaded successfully."
+            });
+            toast.fire();
+        } else {
+            alert("No toast - try cornflakes"); // For a standalone app here
+        }
+    }
+})

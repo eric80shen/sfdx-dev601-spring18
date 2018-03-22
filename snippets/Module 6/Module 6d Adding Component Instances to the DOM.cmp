@@ -1,0 +1,41 @@
+<!-- TestCmp.cmp -->
+<aura:component implements="flexipage:availableForAllPageTypes" access="global" >
+
+    <aura:attribute name="newButtonId" type="Integer" default="0" access="PRIVATE"/>
+    
+    <lightning:button label="Click me" onclick="{!c.onPress}"/>
+    
+    {!v.body}
+
+</aura:component>
+
+<!-- TestCmpController.js -->
+({
+    onPress : function(component, event, helper) {
+        // increment the counter 
+        component.set("v.newButtonId",component.get("v.newButtonId") + 1);
+        
+        $A.createComponent(
+            "lightning:button",
+            {
+                "aura:id": "button" + component.get("v.newButtonId"),
+                "label": "Button" + component.get("v.newButtonId") + " - Press to destroy",
+                "onclick": component.getReference("c.handlePress"),
+                "variant": "brand"
+            },
+            function(newButton){
+                // Add the new button to the body array
+                if (component.isValid()) {
+                    var body = component.get("v.body");
+                    body.push(newButton);
+                    component.set("v.body", body);
+                }
+            }
+        );
+    },
+    
+    handlePress: function(component, event, helper) {
+        component.set("v.body",[]);
+    }
+})
+

@@ -1,0 +1,40 @@
+<!--
+
+Surface the Panic Button component as a Lightning Application that can be launched directly from a URL.
+
+1.	Define a Lightning Application
+2.	Invoke a Lightning Component
+3.	Execute a Lightning Application from a Url.
+
+-->
+
+<!-- NEW AwInstructorsAppTemplate.cmp
+
+Description: Template for the AWInstructors app that changes the browser title.
+
+-->
+<aura:component isTemplate="true" extends="aura:template">
+    
+    <!--<aura:set attribute="title" value="Don't Panic!"/>-->
+    <aura:set attribute="title" value="AwInstructors"/>
+    
+</aura:component>
+
+<!-- NEW AwInstructorsApp.app
+
+Description: URL endpoint for AWInstructors Application
+
+-->
+<aura:application extends="force:slds" template="c:AwInstructorsAppTemplate">
+    
+    <!--
+    <aura:attribute name="sound" type="String" default="Sad Trombone" />
+    <aura:attribute name="message" type="String" default="D'Oh"/>
+    
+    <c:PanicButton sound="{!v.sound}" message="{!v.message}" />
+	-->
+    
+    <c:AwInstructors />
+    
+</aura:application>
+
